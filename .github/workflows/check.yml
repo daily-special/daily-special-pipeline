@@ -1,0 +1,18 @@
+name: check
+
+# 품질 게이트만 돌린다. 콘텐츠 생성은 여기서 돌리지 않는다 —
+# push마다 API 요금이 나가고, 결과가 비결정적이라 실패해도 원인을 알 수 없다.
+# 이 워크플로가 초록이면 "API 키 없이 테스트가 돈다"가 증명된다.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --frozen
+      - run: make check

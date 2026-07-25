@@ -32,13 +32,13 @@
 
 ---
 
-### ⬜ 1단계 — 프로젝트 골격
+### ✅ 1단계 — 프로젝트 골격
 
-uv · `pyproject.toml` · 계층 디렉터리 · 품질 게이트 4종(ruff / mypy strict / import-linter / pytest).
+uv · `pyproject.toml` · 계층 디렉터리 · 품질 게이트 4종(ruff / mypy strict / import-linter / pytest) · `make check` · GitHub Actions.
 
-**완료 조건**: 빈 계층 위에서 게이트 4개가 전부 통과한다. 계층 위반을 일부러 만들었을 때 `lint-imports`가 실패한다.
+**완료 조건 — 충족**: 게이트 4개가 전부 통과하고, `domain`에서 `adapter`를 import하는 위반을 주입하자 `lint-imports`와 `pytest`가 함께 실패했다.
 
-경계를 강제하는 도구가 처음부터 있어야 한다. 나중에 넣으면 이미 위반이 쌓여 있어 켜지지 않는다.
+빈 패키지는 import가 없어 계약이 공회전으로 통과하므로, 계층마다 실제 모듈을 하나씩 뒀다 — 예외 계층 · `Issue`/`Severity` · `LlmPort`/`Tier` · 가짜 어댑터.
 
 ---
 
@@ -144,7 +144,8 @@ OpenAI SDK 직접 사용. 범용 `LlmPort` + 구조화 출력. ProjectBible에�
 
 ## 3. 현재 위치
 
-**0단계 완료. 1단계 미착수.**
+**1단계 완료. 다음은 2단계(ProjectBible 최소치).**
 
-- 코드 0줄. `docs/` 3종과 `.gitignore`만 있다
+- 골격과 게이트가 선다. `make check` 통과. 테스트 6건
+- 원격: `github.com/daily-special/daily-special-pipeline` (public)
 - 병렬 진행(윈도우, 본인): Unity APK 스파이크 go/no-go

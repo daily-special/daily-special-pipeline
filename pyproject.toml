@@ -1,0 +1,85 @@
+[project]
+name = "daily-special-pipeline"
+version = "0.1.0"
+description = "「오늘의 정식」 AI 콘텐츠 생성 파이프라인"
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic>=2.11",
+    "openai>=1.99",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.15",
+    "ruff>=0.12",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.25",
+    "import-linter>=2.3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/daily_special"]
+
+# ---------------------------------------------------------------- ruff
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+# 문서의 예제 코드는 ❌/✅ 대비를 위해 일부러 그렇게 쓴 것이라 포맷하지 않는다.
+extend-exclude = ["docs"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F",   # pycodestyle · pyflakes
+    "I",        # import 정렬
+    "N",        # 네이밍 (규약 7절)
+    "UP",       # 낡은 문법
+    "B",        # 흔한 버그 패턴
+    "SIM",      # 불필요한 복잡도
+    "RUF",
+]
+
+# ---------------------------------------------------------------- mypy
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+
+# ---------------------------------------------------------------- pytest
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+# 실호출 테스트는 기본 실행에서 제외한다 (규약 6절).
+# 실행하려면: uv run pytest -m live
+markers = ["live: 실제 LLM API를 호출하는 테스트"]
+addopts = ["-m", "not live"]
+
+# ---------------------------------------------------------------- import-linter
+# 규약 1절. 계층 경계는 사람이 아니라 도구가 지킨다.
+
+[tool.importlinter]
+root_package = "daily_special"
+
+[[tool.importlinter.contracts]]
+name = "계층 의존 방향 (adapter → application → domain)"
+type = "layers"
+layers = [
+    "daily_special.adapter",
+    "daily_special.application",
+    "daily_special.domain",
+]
+
+[[tool.importlinter.contracts]]
+name = "common은 다른 계층을 모른다"
+type = "forbidden"
+source_modules = ["daily_special.common"]
+forbidden_modules = [
+    "daily_special.domain",
+    "daily_special.application",
+    "daily_special.adapter",
+]
