@@ -32,6 +32,12 @@ def _minimal_data() -> dict[str, Any]:
             }
         ],
         "dietary_constraints": [],
+        "scoring": {
+            "need_floor": 0.15,
+            "axis_tolerance": 25,
+            "budget_overrun_ratio": 1.5,
+            "dietary_violation_factor": 0.1,
+        },
     }
 
 
@@ -106,6 +112,40 @@ def test_empty_axes_is_rejected() -> None:
     data = _minimal_data()
     data["axes"] = []
     with pytest.raises(ConfigError, match="axes가 비어 있다"):
+        ProjectBible.model_validate(data)
+
+
+# ---------------------------------------------------------------- 채점 계수
+
+
+def test_need_floor_of_one_is_rejected() -> None:
+    """바닥값이 1이면 욕구를 빗나가도 만점이라 추론할 이유가 사라진다."""
+    data = _minimal_data()
+    data["scoring"]["need_floor"] = 1.0
+    with pytest.raises(ConfigError, match="need_floor"):
+        ProjectBible.model_validate(data)
+
+
+def test_dietary_factor_of_one_is_rejected() -> None:
+    """계수가 1이면 식이 위반에 아무 대가가 없다."""
+    data = _minimal_data()
+    data["scoring"]["dietary_violation_factor"] = 1.0
+    with pytest.raises(ConfigError, match="dietary_violation_factor"):
+        ProjectBible.model_validate(data)
+
+
+def test_budget_overrun_ratio_of_one_is_rejected() -> None:
+    """1 이하면 지갑을 넘는 순간 0이 되어, 완만하게 두기로 한 결정이 무효가 된다."""
+    data = _minimal_data()
+    data["scoring"]["budget_overrun_ratio"] = 1.0
+    with pytest.raises(ConfigError, match="budget_overrun_ratio"):
+        ProjectBible.model_validate(data)
+
+
+def test_zero_axis_tolerance_is_rejected() -> None:
+    data = _minimal_data()
+    data["scoring"]["axis_tolerance"] = 0
+    with pytest.raises(ConfigError, match="axis_tolerance"):
         ProjectBible.model_validate(data)
 
 

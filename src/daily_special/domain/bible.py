@@ -74,6 +74,39 @@ class DietarySpec(BaseModel):
     description: str
 
 
+class ScoringSpec(BaseModel):
+    """만족도 계산의 계수. 코드에 박지 않고 여기서 소유한다.
+
+    전부 밸런스 시뮬레이션으로 조정할 값이라, 하나라도 코드에 박히면 조정 때마다
+    코드를 고치게 된다.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    need_floor: float
+    """욕구 충족도의 바닥값.
+
+    욕구가 1개인 손님은 비율이 0/1 이분법이 되어, 빗나가면 아무리 잘 만들어도
+    만족이 0이 된다. 하드 게임오버 없는 코지 게임과 어긋나므로 바닥을 둔다 —
+    "원하던 건 아니지만 밥은 먹었다".
+    """
+
+    axis_tolerance: int
+    """이상 구간 밖으로 이만큼 벗어나면 그 축의 점수가 0이 된다.
+
+    슬라이더 단위와 같은 척도다. 구간 안은 1.0, 밖은 여기까지 선형으로 감소한다.
+    """
+
+    budget_overrun_ratio: float
+    """지갑의 몇 배 가격에서 예산 적합이 0이 되는가.
+
+    1.0이면 지갑을 넘는 순간 0이라 이분법이 된다. 그보다 커야 완만해진다.
+    """
+
+    dietary_violation_factor: float
+    """식이 제약 위반 하나당 곱하는 계수. 위반이 둘이면 두 번 곱한다."""
+
+
 class Unconfirmed(BaseModel):
     """확정되지 않은 게임 수치. 가정값을 쓴다면 그 사실이 여기 남아야 한다.
 
@@ -101,6 +134,7 @@ class ProjectBible(BaseModel):
     needs: list[NeedSpec]
     axes: list[AxisSpec]
     dietary_constraints: list[DietarySpec]
+    scoring: ScoringSpec
     unconfirmed: list[Unconfirmed] = []
 
     def find_need(self, key: str) -> NeedSpec | None:
@@ -136,7 +170,33 @@ class ProjectBible(BaseModel):
                     f"{axis.slider_min} >= {axis.slider_max}"
                 )
 
+        self._check_scoring()
         return self
+
+    def _check_scoring(self) -> None:
+        """계수가 범위를 벗어나면 만족도가 0~1을 벗어난다. 여기서 막는다."""
+        scoring = self.scoring
+
+        if not 0.0 <= scoring.need_floor < 1.0:
+            raise ConfigError(
+                f"need_floor는 0 이상 1 미만이어야 한다: {scoring.need_floor}. "
+                "1이면 욕구를 빗나가도 만점이라 추론할 이유가 사라진다"
+            )
+        if not 0.0 <= scoring.dietary_violation_factor < 1.0:
+            raise ConfigError(
+                f"dietary_violation_factor는 0 이상 1 미만이어야 한다: "
+                f"{scoring.dietary_violation_factor}. 1이면 위반이 아무 대가가 없다"
+            )
+        if scoring.budget_overrun_ratio <= 1.0:
+            raise ConfigError(
+                f"budget_overrun_ratio는 1보다 커야 한다: {scoring.budget_overrun_ratio}. "
+                "1 이하면 지갑을 넘는 순간 0이 되어 이분법이 된다"
+            )
+        if scoring.axis_tolerance <= 0:
+            raise ConfigError(
+                f"axis_tolerance는 0보다 커야 한다: {scoring.axis_tolerance}. "
+                "0이면 이상 구간을 1만큼만 벗어나도 그 축이 0이 된다"
+            )
 
 
 def _require_unique_slugs(field: str, keys: Sequence[str]) -> None:
