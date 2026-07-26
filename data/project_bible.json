@@ -81,6 +81,13 @@
     }
   ],
 
+  "scoring": {
+    "need_floor": 0.15,
+    "axis_tolerance": 25,
+    "budget_overrun_ratio": 1.5,
+    "dietary_violation_factor": 0.1
+  },
+
   "unconfirmed": [
     {
       "key": "axes[].slider_min / slider_max",
@@ -95,7 +102,12 @@
     {
       "key": "요리 기본가대 · 손님 지갑 스케일",
       "assumed": "아직 없음",
-      "why": "만족도의 '예산 적합' 항이 이 둘을 함께 읽으므로, 3단계에서 만족도 엔진을 짜면서 같이 정한다. 지금 넣으면 엔진이 요구하지 않는 수치를 지어내게 된다"
+      "why": "3단계에서 정하려 했으나 필요 없는 것으로 드러났다. 예산 적합이 가격/지갑 비율만 쓰므로 화폐의 절대 스케일에 무관하다. 실제 수치는 요리를 만드는 8단계에서 정한다"
+    },
+    {
+      "key": "scoring.*",
+      "assumed": "need_floor 0.15 · axis_tolerance 25 · budget_overrun_ratio 1.5 · dietary_violation_factor 0.1",
+      "why": "만족도 계산의 감각을 정하는 값들인데 근거가 될 플레이 데이터가 아직 없다. 네 값 모두 10단계 밸런스 시뮬레이션으로 조정한다. axis_tolerance 25는 슬라이더 0~100 기준 4분의 1이라는 뜻이고, 슬라이더 범위가 바뀌면 함께 바뀌어야 한다"
     }
   ]
 }

@@ -13,6 +13,13 @@ class ConfigError(DailySpecialError):
     """
 
 
+class DomainError(DailySpecialError):
+    """도메인 규칙을 부를 수 없는 방식으로 불렀다. 호출 측의 잘못이다.
+
+    생성물이 규칙을 어긴 것과는 다르다 — 그쪽은 Issue로 모은다.
+    """
+
+
 class LlmError(DailySpecialError):
     """LLM 전송 실패. 어댑터가 재시도를 소진한 뒤에도 실패한 경우다.
 
