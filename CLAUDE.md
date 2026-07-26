@@ -108,7 +108,7 @@ daily-special-client     Unity 도트 2D          (윈도우) — 스파이크 �
 
 **roadmap 한 단계 = 작업 브랜치 하나 = PR 하나.** `dev` 브랜치는 두지 않는다 — 배포가 없어서 main/dev 구분이 아무것도 나누지 못한다.
 
-- 브랜치명 `step-<번호>-<영문-슬러그>` (예: `step-2-project-bible`)
+- 브랜치명 `<type>/<영문-슬러그>` (예: `feat/project-bible`). `type`은 커밋 규약과 같은 목록을 쓴다
 - **3단계(작업) 착수 전에 브랜치를 판다.** main에서 작업하지 않는다
 - 5단계(문서 반영)까지 끝나면 PR을 올리고, **CI가 초록인 것을 확인한 뒤** squash 머지
 - 작업 계획은 `docs/roadmap.md`가 소유한다. GitHub 이슈로 옮기지 않는다 — 두 곳이 되면 어긋난다
