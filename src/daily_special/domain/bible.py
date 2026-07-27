@@ -74,6 +74,21 @@ class DietarySpec(BaseModel):
     description: str
 
 
+class VoiceSpec(BaseModel):
+    """말투 하나. 대사 풀이 (상황 × 말투)로 짜이므로 이 키가 조인 키다.
+
+    말투를 자유 텍스트로 두면 런타임이 대사를 고를 수 없다. 손님의 뉘앙스는
+    페르소나의 personality 문장이 따로 나른다 — 조인은 키가, 결은 문장이 맡는다.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    key: str
+    label: str
+    description: str
+    """이 말투가 어떻게 말하는지. 대사 생성 프롬프트에 그대로 실린다."""
+
+
 class ScoringSpec(BaseModel):
     """만족도 계산의 계수. 코드에 박지 않고 여기서 소유한다.
 
@@ -134,6 +149,7 @@ class ProjectBible(BaseModel):
     needs: list[NeedSpec]
     axes: list[AxisSpec]
     dietary_constraints: list[DietarySpec]
+    voices: list[VoiceSpec]
     scoring: ScoringSpec
     unconfirmed: list[Unconfirmed] = []
 
@@ -147,6 +163,9 @@ class ProjectBible(BaseModel):
     def find_dietary(self, key: str) -> DietarySpec | None:
         return next((item for item in self.dietary_constraints if item.key == key), None)
 
+    def find_voice(self, key: str) -> VoiceSpec | None:
+        return next((voice for voice in self.voices if voice.key == key), None)
+
     @model_validator(mode="after")
     def _check_invariants(self) -> "ProjectBible":
         if not self.version.strip():
@@ -157,11 +176,16 @@ class ProjectBible(BaseModel):
         _require_unique_slugs(
             "dietary_constraints", [item.key for item in self.dietary_constraints]
         )
+        _require_unique_slugs("voices", [voice.key for voice in self.voices])
 
         if not self.needs:
             raise ConfigError("needs가 비어 있다. 욕구가 없으면 손님이 무엇도 원할 수 없다")
         if not self.axes:
             raise ConfigError("axes가 비어 있다. 축이 없으면 요리 품질을 표현할 수 없다")
+        if not self.voices:
+            raise ConfigError(
+                "voices가 비어 있다. 말투가 없으면 손님이 유효한 voice를 가질 수 없다"
+            )
 
         for axis in self.axes:
             if axis.slider_min >= axis.slider_max:

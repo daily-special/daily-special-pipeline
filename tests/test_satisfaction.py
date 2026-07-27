@@ -46,6 +46,8 @@ def _bible() -> ProjectBible:
             "needs": [named(k) for k in ("filling", "restorative", "mild", "affordable")],
             "axes": [axis(k) for k in ("heat", "cook_time", "seasoning")],
             "dietary_constraints": [named(k) for k in ("no_meat", "no_dairy")],
+            # 만족도 계산은 말투를 읽지 않는다. 설정이 요구해서 채울 뿐이다.
+            "voices": [named("gruff")],
             "scoring": {
                 "need_floor": FLOOR,
                 "axis_tolerance": TOLERANCE,
