@@ -32,6 +32,7 @@ def _minimal_data() -> dict[str, Any]:
             }
         ],
         "dietary_constraints": [],
+        "voices": [{"key": "gruff", "label": "무뚝뚝", "description": "말이 짧다"}],
         "scoring": {
             "need_floor": 0.15,
             "axis_tolerance": 25,
@@ -53,6 +54,7 @@ def test_real_bible_loads() -> None:
     assert bible.version
     assert len(bible.needs) == 6
     assert len(bible.axes) == 3
+    assert len(bible.voices) == 5
 
 
 def test_real_bible_axes_are_the_three_design_axes() -> None:
@@ -115,6 +117,25 @@ def test_empty_axes_is_rejected() -> None:
         ProjectBible.model_validate(data)
 
 
+def test_empty_voices_is_rejected() -> None:
+    """말투가 하나도 없으면 어떤 손님도 유효한 voice를 가질 수 없다."""
+    data = _minimal_data()
+    data["voices"] = []
+    with pytest.raises(ConfigError, match="voices가 비어 있다"):
+        ProjectBible.model_validate(data)
+
+
+def test_duplicate_voice_key_is_rejected() -> None:
+    """말투 키는 대사 풀과의 조인 키다. 중복되면 어느 대사가 붙는지 알 수 없다."""
+    data = _minimal_data()
+    data["voices"] = [
+        {"key": "gruff", "label": "무뚝뚝", "description": "말이 짧다"},
+        {"key": "gruff", "label": "무뚝뚝2", "description": "중복된 키"},
+    ]
+    with pytest.raises(ConfigError, match="중복된 키"):
+        ProjectBible.model_validate(data)
+
+
 # ---------------------------------------------------------------- 채점 계수
 
 
@@ -159,6 +180,8 @@ def test_find_returns_none_for_unknown_key() -> None:
     assert bible.find_need("nonexistent") is None
     assert bible.find_axis("nonexistent") is None
     assert bible.find_dietary("nonexistent") is None
+    assert bible.find_voice("gruff") is not None
+    assert bible.find_voice("nonexistent") is None
 
 
 # ---------------------------------------------------------------- 로더
