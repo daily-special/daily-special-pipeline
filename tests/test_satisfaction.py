@@ -48,6 +48,13 @@ def _bible() -> ProjectBible:
             "dietary_constraints": [named(k) for k in ("no_meat", "no_dairy")],
             # 만족도 계산은 말투를 읽지 않는다. 설정이 요구해서 채울 뿐이다.
             "voices": [named("gruff")],
+            "generation": {
+                "max_ideal_span_ratio": 0.5,
+                "min_preferred_axes": 1,
+                "min_preferred_needs": 1,
+                "max_preferred_needs": 2,
+                "min_text_length": 1,
+            },
             "scoring": {
                 "need_floor": FLOOR,
                 "axis_tolerance": TOLERANCE,

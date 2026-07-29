@@ -37,6 +37,13 @@ def _bible() -> ProjectBible:
             "axes": [axis("heat"), axis("seasoning")],
             "dietary_constraints": [named("no_meat")],
             "voices": [named("gruff")],
+            "generation": {
+                "max_ideal_span_ratio": 0.5,
+                "min_preferred_axes": 1,
+                "min_preferred_needs": 1,
+                "max_preferred_needs": 2,
+                "min_text_length": 1,
+            },
             "scoring": {
                 "need_floor": 0.15,
                 "axis_tolerance": 25,
@@ -87,7 +94,7 @@ async def test_uses_the_quality_tier() -> None:
 
     await generate_guests(llm=llm, bible=bible, count=1)
 
-    assert llm.calls[0][1] is Tier.QUALITY
+    assert llm.calls[0].tier is Tier.QUALITY
 
 
 async def test_result_is_contract_shaped() -> None:
@@ -102,15 +109,19 @@ async def test_result_is_contract_shaped() -> None:
 
 
 async def test_rule_violation_is_reported_not_discarded() -> None:
-    """규칙을 어겼다고 버리지 않는다 (규약 5-3). 재생성은 6단계의 판단이다."""
+    """규칙을 어겼다고 버리지 않는다 (규약 5-3).
+
+    재생성을 끄고 본다. 루프가 없어도 생성물은 Issue를 달고 살아남아야 한다.
+    """
     bible = _bible()
     llm = FakeLlm([_response(bible, _item(ideal_heat={"low": 90, "high": 130}))])
 
-    result = await generate_guests(llm=llm, bible=bible, count=1)
+    result = await generate_guests(llm=llm, bible=bible, count=1, max_regenerations=0)
 
     assert len(result.guests) == 1, "생성물을 버렸다"
     assert has_errors(result.issues)
     assert result.issues[0].field == "items[0].ideal_ranges.heat"
+    assert result.call_count == 1
 
 
 async def test_duplicate_id_within_the_batch_is_an_error() -> None:
@@ -118,7 +129,7 @@ async def test_duplicate_id_within_the_batch_is_an_error() -> None:
     bible = _bible()
     llm = FakeLlm([_response(bible, _item(), _item())])
 
-    result = await generate_guests(llm=llm, bible=bible, count=2)
+    result = await generate_guests(llm=llm, bible=bible, count=2, max_regenerations=0)
 
     assert has_errors(result.issues)
     assert [issue.field for issue in result.issues] == [
@@ -132,7 +143,7 @@ async def test_issue_field_points_at_the_position_not_the_id() -> None:
     bible = _bible()
     llm = FakeLlm([_response(bible, _item(), _item(guest_id="bad-id"))])
 
-    result = await generate_guests(llm=llm, bible=bible, count=2)
+    result = await generate_guests(llm=llm, bible=bible, count=2, max_regenerations=0)
 
     assert [issue.field for issue in result.issues] == ["items[1].guest_id"]
 
@@ -156,16 +167,130 @@ async def test_valid_batch_has_no_issues() -> None:
     result = await generate_guests(llm=llm, bible=bible, count=2)
 
     assert result.issues == []
+    assert result.call_count == 1, "고칠 게 없는데 다시 불렀다"
 
 
-async def test_does_not_regenerate() -> None:
-    """재생성은 6단계다. 두 층을 한 함수에 넣으면 호출 횟수를 추적할 수 없다."""
+# ---------------------------------------------------------------- 재생성 루프
+
+
+def _bad_item(**overrides: Any) -> dict[str, Any]:
+    """이상 구간이 슬라이더 밖이라 ERROR가 나는 손님."""
+    return _item(ideal_heat={"low": 90, "high": 130}, **overrides)
+
+
+async def test_only_the_offender_is_regenerated() -> None:
+    """배치 전체가 아니라 어긴 사람만 다시 만든다.
+
+    8명 중 1명이 틀렸을 때 8명을 다시 뽑으면 멀쩡한 7명을 버리고 돈을 8배로 쓴다.
+    """
     bible = _bible()
-    llm = FakeLlm([_response(bible, _item(voice="gruff", guest_id="bad-id"))])
+    llm = FakeLlm(
+        [
+            _response(bible, _item(), _bad_item(guest_id="guest_test_02")),
+            _response(bible, _item(guest_id="guest_test_03")),
+        ]
+    )
+
+    result = await generate_guests(llm=llm, bible=bible, count=2)
+
+    assert result.call_count == 2
+    assert not has_errors(result.issues)
+    ids = [guest.guest_id for guest in result.guests]
+    assert "guest_test_01" in ids, "통과한 손님을 버렸다"
+    assert "guest_test_03" in ids
+
+
+async def test_regeneration_asks_only_for_the_missing_count() -> None:
+    """다시 뽑는 인원은 걸린 사람 수만큼이다."""
+    bible = _bible()
+    llm = FakeLlm(
+        [
+            _response(bible, _item(), _bad_item(guest_id="guest_test_02")),
+            _response(bible, _item(guest_id="guest_test_03")),
+        ]
+    )
+
+    await generate_guests(llm=llm, bible=bible, count=2)
+
+    assert "손님 1명" in llm.calls[1].context
+
+
+async def test_feedback_reaches_the_model() -> None:
+    """무엇이 틀렸는지 전달하지 않으면 재생성은 그냥 다시 굴리는 주사위다.
+
+    Issue.message를 처음부터 모델이 읽는다고 생각하고 쓴 것이 여기서 값을 한다.
+    """
+    bible = _bible()
+    llm = FakeLlm(
+        [
+            _response(bible, _bad_item()),
+            _response(bible, _item(guest_id="guest_test_02")),
+        ]
+    )
 
     await generate_guests(llm=llm, bible=bible, count=1)
 
-    assert len(llm.calls) == 1
+    retry_context = llm.calls[1].context
+    assert "지난번" in retry_context
+    assert "슬라이더 범위" in retry_context, "무엇이 틀렸는지 싣지 않았다"
+
+
+async def test_kept_guests_are_listed_so_replacements_do_not_collide() -> None:
+    """어긴 사람만 다시 뽑으면 새로 만들어지는 쪽은 남은 사람들을 모른다.
+
+    그대로 두면 한 명을 고치려다 중복을 새로 만든다.
+    """
+    bible = _bible()
+    llm = FakeLlm(
+        [
+            _response(bible, _item(name="살아남은손님"), _bad_item(guest_id="guest_test_02")),
+            _response(bible, _item(guest_id="guest_test_03")),
+        ]
+    )
+
+    await generate_guests(llm=llm, bible=bible, count=2)
+
+    assert "살아남은손님" in llm.calls[1].context
+
+
+async def test_exhausted_loop_still_returns_everything() -> None:
+    """3회를 소진해도 버리지 않는다 (규약 5-3).
+
+    여기서 예외를 올리면 같은 배치의 멀쩡한 손님까지 잃는다.
+    """
+    bible = _bible()
+    llm = FakeLlm([_response(bible, _bad_item()) for _ in range(4)])
+
+    result = await generate_guests(llm=llm, bible=bible, count=1, max_regenerations=3)
+
+    assert result.call_count == 4, "첫 호출 1회 + 재생성 3회"
+    assert len(result.guests) == 1, "고쳐지지 않았다고 버렸다"
+    assert has_errors(result.issues), "못 고친 것을 조용히 통과시켰다"
+
+
+async def test_loop_stops_as_soon_as_it_passes() -> None:
+    """고쳐졌는데도 남은 횟수를 쓰면 그대로 돈이다."""
+    bible = _bible()
+    llm = FakeLlm(
+        [
+            _response(bible, _bad_item()),
+            _response(bible, _item(guest_id="guest_test_02")),
+        ]
+    )
+
+    result = await generate_guests(llm=llm, bible=bible, count=1, max_regenerations=3)
+
+    assert result.call_count == 2
+
+
+async def test_negative_max_regenerations_is_rejected() -> None:
+    bible = _bible()
+    llm = FakeLlm([])
+
+    with pytest.raises(DomainError, match="0 이상"):
+        await generate_guests(llm=llm, bible=bible, count=1, max_regenerations=-1)
+
+    assert llm.calls == []
 
 
 async def test_non_positive_count_never_calls_the_model() -> None:

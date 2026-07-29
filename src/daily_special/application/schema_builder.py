@@ -129,7 +129,8 @@ def build_guest_batch_schema(bible: ProjectBible) -> GuestBatchSchema:
             Field(
                 description=(
                     "이 사람이 무엇을 하는 사람인지 한두 문장. 플레이어에게 그대로 보이는 "
-                    "글이다. 왜 이 식당에 오는지가 드러나면 좋다."
+                    "글이다. 왜 이 식당에 오는지가 드러나면 좋다. "
+                    f"{bible.generation.min_text_length}자 이상."
                 )
             ),
         ),
@@ -138,7 +139,8 @@ def build_guest_batch_schema(bible: ProjectBible) -> GuestBatchSchema:
             Field(
                 description=(
                     "어떻게 말하고 반응하는지 한두 문장. 화면에 보이지 않고 대사를 만들 때만 "
-                    "쓴다. 말투가 큰 결을 정하므로 여기엔 이 사람만의 버릇을 쓴다."
+                    "쓴다. 말투가 큰 결을 정하므로 여기엔 이 사람만의 버릇을 쓴다. "
+                    f"{bible.generation.min_text_length}자 이상."
                 )
             ),
         ),
@@ -205,7 +207,11 @@ def _voice_description(bible: ProjectBible) -> str:
 
 def _need_description(bible: ProjectBible) -> str:
     listed = " / ".join(f"{need.key}({need.label}): {need.description}" for need in bible.needs)
-    return f"이 손님이 평소 기우는 욕구. 1~2개만 고른다. 성격·처지와 이어져야 한다 — 목록: {listed}"
+    spec = bible.generation
+    return (
+        f"이 손님이 평소 기우는 욕구. {spec.min_preferred_needs}~{spec.max_preferred_needs}개만 "
+        f"고른다. 성격·처지와 이어져야 한다 — 목록: {listed}"
+    )
 
 
 def _dietary_description(bible: ProjectBible) -> str:

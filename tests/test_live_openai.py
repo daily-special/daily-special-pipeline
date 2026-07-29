@@ -40,6 +40,9 @@ async def test_generates_real_guests() -> None:
     for issue in result.issues:
         print(f"  [{issue.severity}] {issue.field}: {issue.message}")
 
+    # 호출 횟수가 곧 비용이다. 재생성이 조용히 세 번씩 도는 것을 눈으로 보기 위해 남긴다.
+    print(f"\nLLM 호출 {result.call_count}회")
+
     assert len(result.guests) == 2
     assert not has_errors(result.issues), "실제 생성물이 규칙을 어겼다"
 
