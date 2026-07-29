@@ -6,9 +6,9 @@
 
 from typing import Any
 
-from daily_special.application.regenerate import partition_by_errors
+from daily_special.application.regenerate import Partition, partition_by_errors
 from daily_special.domain.bible import ProjectBible
-from daily_special.domain.guest import Guest
+from daily_special.domain.guest import Guest, check_guest
 from daily_special.domain.issue import Severity
 
 
@@ -32,6 +32,14 @@ def _bible() -> ProjectBible:
             "axes": [axis("heat"), axis("seasoning")],
             "dietary_constraints": [named("no_meat")],
             "voices": [named("gruff")],
+            "economy": {
+                "wallet_min": 8,
+                "wallet_max": 40,
+                "dish_price_min": 6,
+                "dish_price_max": 30,
+                "ingredient_price_min": 1,
+                "ingredient_price_max": 8,
+            },
             "generation": {
                 "max_ideal_span_ratio": 0.5,
                 "min_preferred_axes": 1,
@@ -65,9 +73,19 @@ def _guest(guest_id: str = "guest_test_01", **overrides: Any) -> Guest:
     return Guest.model_validate(data)
 
 
+def _partition(guests: list[Guest]) -> Partition[Guest]:
+    """정책은 콘텐츠 종류를 모른다. 검사 방법만 받아서 쓴다."""
+    bible = _bible()
+    return partition_by_errors(
+        guests,
+        check=lambda guest: check_guest(guest, bible),
+        id_of=lambda guest: guest.guest_id,
+    )
+
+
 def test_clean_batch_keeps_everyone() -> None:
     guests = [_guest("guest_a_01"), _guest("guest_b_01")]
-    partition = partition_by_errors(guests, _bible())
+    partition = _partition(guests)
 
     assert partition.kept == guests
     assert partition.rejected == []
@@ -79,7 +97,7 @@ def test_only_the_offender_is_rejected() -> None:
     good = _guest("guest_a_01")
     bad = _guest("guest_b_01", voice="sarcastic")
 
-    partition = partition_by_errors([good, bad], _bible())
+    partition = _partition([good, bad])
 
     assert partition.kept == [good]
     assert partition.rejected == [bad]
@@ -88,7 +106,7 @@ def test_only_the_offender_is_rejected() -> None:
 def test_warning_alone_does_not_reject() -> None:
     """WARNING은 통과시킨다. ERROR만 재생성을 부르고, 재생성은 돈을 쓴다."""
     warned = _guest(preferred_needs=["filling", "mild", "filling"])
-    partition = partition_by_errors([warned], _bible())
+    partition = _partition([warned])
 
     assert partition.kept == [warned]
     assert partition.rejected == []
@@ -99,7 +117,7 @@ def test_duplicate_id_keeps_the_first() -> None:
     first = _guest("guest_same_01", name="먼저")
     second = _guest("guest_same_01", name="나중")
 
-    partition = partition_by_errors([first, second], _bible())
+    partition = _partition([first, second])
 
     assert partition.kept == [first]
     assert partition.rejected == [second]
@@ -110,7 +128,7 @@ def test_issues_cover_only_the_rejected() -> None:
     warned = _guest("guest_a_01", preferred_needs=["filling", "mild", "filling"])
     bad = _guest("guest_b_01", voice="sarcastic")
 
-    partition = partition_by_errors([warned, bad], _bible())
+    partition = _partition([warned, bad])
 
     assert [issue.field for issue in partition.issues] == ["voice"]
     assert all(issue.severity is Severity.ERROR for issue in partition.issues)
@@ -119,13 +137,13 @@ def test_issues_cover_only_the_rejected() -> None:
 def test_quality_failure_is_rejected() -> None:
     """문법적으로 완벽하면서 쓸모없는 생성물도 다시 만든다."""
     empty = _guest(ideal_ranges={})
-    partition = partition_by_errors([empty], _bible())
+    partition = _partition([empty])
 
     assert partition.rejected == [empty]
 
 
 def test_empty_batch_is_fine() -> None:
-    partition = partition_by_errors([], _bible())
+    partition = _partition([])
 
     assert partition.kept == []
     assert partition.rejected == []

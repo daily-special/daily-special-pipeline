@@ -17,6 +17,7 @@ import pytest
 from daily_special.adapter.outbound.config.loader import load_bible
 from daily_special.adapter.outbound.llm.openai_llm import OpenAiLlm
 from daily_special.application.generate_guests import generate_guests
+from daily_special.application.generate_ingredients import generate_ingredients
 from daily_special.application.review_guests import review_guests
 from daily_special.domain.guest import Guest
 from daily_special.domain.issue import Severity, has_errors
@@ -132,3 +133,27 @@ async def test_review_actually_catches_an_overlap() -> None:
 
     assert result.issues, "쌍둥이 손님 둘을 그냥 통과시켰다 — 검토가 일하지 않는다"
     assert all(issue.severity is Severity.WARNING for issue in result.issues)
+
+
+async def test_generates_real_ingredients() -> None:
+    """재료 생성이 실제로 이어지는가.
+
+    검사하는 것은 손님 때와 같다 — 동적 스키마가 strict 모드를 통과하고, 응답이 계약
+    모양으로 되접히고, 검증까지 무사히 도착하는가.
+    """
+    bible = load_bible(BIBLE_PATH)
+    result = await generate_ingredients(llm=OpenAiLlm(), bible=bible, count=6)
+
+    for item in result.ingredients:
+        conflicts = ", ".join(item.dietary_conflicts) or "없음"
+        print(f"\n[{item.ingredient_id}] {item.name} ({item.kind}, {item.base_price})")
+        print(f"  {item.description}")
+        print(f"  저촉: {conflicts}")
+
+    for issue in result.issues:
+        print(f"  [{issue.severity}] {issue.field}: {issue.message}")
+
+    print(f"\nLLM 호출 {result.call_count}회")
+
+    assert len(result.ingredients) == 6
+    assert not has_errors(result.issues), "실제 생성물이 규칙을 어겼다"

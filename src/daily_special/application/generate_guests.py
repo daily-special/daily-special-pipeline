@@ -18,7 +18,7 @@ from daily_special.application.regenerate import (
 from daily_special.application.schema_builder import build_guest_batch_schema
 from daily_special.common.errors import DomainError
 from daily_special.domain.bible import ProjectBible
-from daily_special.domain.guest import Guest, check_guest_batch
+from daily_special.domain.guest import Guest, check_guest, check_guest_batch
 from daily_special.domain.issue import Issue, Severity
 
 
@@ -73,7 +73,11 @@ async def generate_guests(
     calls = 1
 
     for _ in range(max_regenerations):
-        partition = partition_by_errors(guests, bible)
+        partition = partition_by_errors(
+            guests,
+            check=lambda guest: check_guest(guest, bible),
+            id_of=lambda guest: guest.guest_id,
+        )
         if not partition.rejected:
             break
 

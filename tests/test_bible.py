@@ -33,6 +33,14 @@ def _minimal_data() -> dict[str, Any]:
         ],
         "dietary_constraints": [],
         "voices": [{"key": "gruff", "label": "무뚝뚝", "description": "말이 짧다"}],
+        "economy": {
+            "wallet_min": 8,
+            "wallet_max": 40,
+            "dish_price_min": 6,
+            "dish_price_max": 30,
+            "ingredient_price_min": 1,
+            "ingredient_price_max": 8,
+        },
         "generation": {
             "max_ideal_span_ratio": 0.5,
             "min_preferred_axes": 1,
