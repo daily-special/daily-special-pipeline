@@ -42,6 +42,14 @@ def _bible() -> ProjectBible:
             "axes": [axis("heat"), axis("seasoning")],
             "dietary_constraints": [named("no_meat")],
             "voices": [named("gruff")],
+            "economy": {
+                "wallet_min": 8,
+                "wallet_max": 40,
+                "dish_price_min": 6,
+                "dish_price_max": 30,
+                "ingredient_price_min": 1,
+                "ingredient_price_max": 8,
+            },
             "generation": {
                 "max_ideal_span_ratio": 0.5,
                 "min_preferred_axes": 1,

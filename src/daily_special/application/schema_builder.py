@@ -20,19 +20,23 @@ from typing import Any, cast
 from pydantic import BaseModel, ConfigDict, Field, create_model
 
 from daily_special.common.errors import DomainError
-from daily_special.domain.bible import ProjectBible
+from daily_special.domain.bible import IngredientKind, ProjectBible
 from daily_special.domain.guest import Guest
+from daily_special.domain.ingredient import Ingredient
 from daily_special.domain.satisfaction import IdealRange
 
 _AXIS_FIELD_PREFIX = "ideal_"
 
-_CACHE: dict[str, "GuestBatchSchema"] = {}
-"""설정 내용 → 스키마.
+_CACHE: dict[tuple[str, str], "BatchSchema"] = {}
+"""(스키마 종류, 설정 내용) → 스키마.
 
 같은 설정이면 **같은 클래스 객체**를 돌려줘야 한다. 부를 때마다 새로 지으면 이름만 같고
 서로 다른 클래스가 쌓여, 재생성 루프가 매번 Pydantic 모델을 다시 짓고 응답의 타입 비교가
-어긋난다. 키를 설정 내용으로 잡는 이유는 버전 문자열이 같은데 어휘가 다른 설정이
-있을 수 있기 때문이다 — 그런 것을 같다고 보면 조용히 틀린 스키마가 나간다.
+어긋난다.
+
+키가 두 쪽인 이유는 다르다. 설정 내용을 넣는 것은 버전 문자열이 같은데 어휘가 다른 설정이
+있을 수 있어서고 — 그런 것을 같다고 보면 조용히 틀린 스키마가 나간다 — 종류를 넣는 것은
+같은 설정에서 손님 스키마와 재료 스키마가 함께 나오기 때문이다.
 """
 
 
@@ -49,17 +53,23 @@ class GeneratedRange(BaseModel):
     high: int
 
 
-class GuestBatchSchema:
+class BatchSchema:
     """동적으로 만든 배치 스키마와, 그것을 계약으로 되접는 방법.
 
-    둘을 한 곳에 묶는 이유는 되접기가 **어떤 축으로 폈는지**를 알아야 하기 때문이다.
-    떨어뜨려 두면 축 목록이 두 곳에서 따로 흐른다.
+    둘을 한 곳에 묶는 이유는 되접기가 **어떻게 폈는지**를 알아야 하기 때문이다.
+    떨어뜨려 두면 편 방식이 두 곳에서 따로 흐른다.
     """
 
-    def __init__(self, model: type[BaseModel], axis_keys: Sequence[str]) -> None:
+    def __init__(self, model: type[BaseModel]) -> None:
         self.model = model
         """LlmPort.generate의 schema 인자로 그대로 넘기는 모델."""
 
+
+class GuestBatchSchema(BatchSchema):
+    """손님 배치. 축마다 필드 하나로 편 것을 다시 맵으로 접는다."""
+
+    def __init__(self, model: type[BaseModel], axis_keys: Sequence[str]) -> None:
+        super().__init__(model)
         self._axis_keys = tuple(axis_keys)
 
     def to_guests(self, response: BaseModel) -> list[Guest]:
@@ -100,9 +110,9 @@ def build_guest_batch_schema(bible: ProjectBible) -> GuestBatchSchema:
     if not bible.axes:
         raise DomainError("축이 없는 설정으로는 스키마를 만들 수 없다")
 
-    cache_key = bible.model_dump_json()
+    cache_key = ("guests", bible.model_dump_json())
     cached = _CACHE.get(cache_key)
-    if cached is not None:
+    if isinstance(cached, GuestBatchSchema):
         return cached
 
     need_enum = _string_enum("NeedKey", [need.key for need in bible.needs])
@@ -178,6 +188,115 @@ def build_guest_batch_schema(bible: ProjectBible) -> GuestBatchSchema:
     schema = GuestBatchSchema(batch_model, [axis.key for axis in bible.axes])
     _CACHE[cache_key] = schema
     return schema
+
+
+class IngredientBatchSchema(BatchSchema):
+    """재료 배치. 손님과 달리 펼 것이 없어 되접기가 단순하다.
+
+    임의 키 dict가 없기 때문이다 — 그런데도 스키마를 동적으로 짓는 이유는 식이 제약
+    어휘가 enum이어야 하기 때문이다. 없는 제약을 저촉한다고 말하는 것을 구조적으로 막는다.
+    """
+
+    def to_ingredients(self, response: BaseModel) -> list[Ingredient]:
+        items = cast(list[BaseModel], _field(response, "ingredients"))
+        return [self._to_ingredient(item) for item in items]
+
+    def _to_ingredient(self, item: BaseModel) -> Ingredient:
+        conflicts = cast(list[Any], _field(item, "dietary_conflicts"))
+        return Ingredient(
+            ingredient_id=cast(str, _field(item, "ingredient_id")),
+            name=cast(str, _field(item, "name")),
+            kind=IngredientKind(str(_field(item, "kind"))),
+            description=cast(str, _field(item, "description")),
+            base_price=cast(int, _field(item, "base_price")),
+            dietary_conflicts=[str(key) for key in conflicts],
+        )
+
+
+def build_ingredient_batch_schema(bible: ProjectBible) -> IngredientBatchSchema:
+    """설정의 식이 어휘와 가격 범위로 재료 스키마를 짓는다."""
+    cache_key = ("ingredients", bible.model_dump_json())
+    cached = _CACHE.get(cache_key)
+    if isinstance(cached, IngredientBatchSchema):
+        return cached
+
+    dietary_enum = _string_enum("DietaryKey", [item.key for item in bible.dietary_constraints])
+    economy = bible.economy
+
+    item_model = create_model(
+        "GeneratedIngredient",
+        __config__=ConfigDict(extra="forbid"),
+        ingredient_id=(
+            str,
+            Field(
+                description=(
+                    "재료 식별자. 'ingredient_'로 시작하고 소문자·숫자·밑줄만 쓴다. "
+                    "무엇인지 드러나게 짓는다 (예: ingredient_river_herb). 64자 이내."
+                )
+            ),
+        ),
+        name=(str, Field(description="한국어 이름. 판타지 세계관의 식재료다운 짧은 이름.")),
+        kind=(
+            IngredientKind,
+            Field(
+                description=(
+                    "fresh는 그날 안 쓰면 상하는 재료 — 채소·생고기·생선처럼 오늘의 메뉴를 "
+                    "떠받친다. preserved는 재고가 유지되는 재료 — 말린 것·절인 것·곡물처럼 "
+                    "상시 메뉴의 바탕이 된다. 두 종류가 골고루 나와야 한다."
+                )
+            ),
+        ),
+        description=(
+            str,
+            Field(
+                description=(
+                    "어떤 재료이고 어떤 맛인지 한두 문장. 요리를 만드는 쪽이 이것만 보고 "
+                    f"조합을 짜므로 맛과 쓰임이 드러나야 한다. "
+                    f"{bible.generation.min_text_length}자 이상."
+                )
+            ),
+        ),
+        base_price=(
+            int,
+            Field(
+                description=(
+                    f"기준 단가. {economy.ingredient_price_min}~"
+                    f"{economy.ingredient_price_max} 사이의 정수다. 흔한 재료는 낮게, "
+                    "귀하거나 손이 많이 가는 재료는 높게 매긴다."
+                )
+            ),
+        ),
+        dietary_conflicts=(
+            list[dietary_enum],  # type: ignore[valid-type]
+            Field(description=_ingredient_dietary_description(bible)),
+        ),
+    )
+    batch_model = create_model(
+        "GeneratedIngredientBatch",
+        __config__=ConfigDict(extra="forbid"),
+        ingredients=(
+            list[item_model],  # type: ignore[valid-type]
+            Field(description="요청받은 수만큼의 재료. 서로 겹치지 않게 만든다."),
+        ),
+    )
+
+    schema = IngredientBatchSchema(batch_model)
+    _CACHE[cache_key] = schema
+    return schema
+
+
+def _ingredient_dietary_description(bible: ProjectBible) -> str:
+    if not bible.dietary_constraints:
+        return "이 재료가 저촉하는 식이 제약. 지금 설정에는 제약이 없으므로 빈 배열로 둔다."
+
+    listed = " / ".join(
+        f"{item.key}({item.label}): {item.description}" for item in bible.dietary_constraints
+    )
+    return (
+        "이 재료를 쓴 요리가 저촉하게 되는 식이 제약. 재료 자체의 성질로만 판단한다 — "
+        "고기면 육류 불가, 술이면 주류 불가에 걸린다. 해당 없으면 빈 배열로 둔다. "
+        f"목록: {listed}"
+    )
 
 
 def _field(item: BaseModel, name: str) -> Any:

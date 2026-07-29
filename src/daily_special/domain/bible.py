@@ -163,6 +163,35 @@ class GenerationSpec(BaseModel):
     """
 
 
+class EconomySpec(BaseModel):
+    """화폐 스케일. 세 범위의 **관계**가 이 블록의 내용이다.
+
+    만족도의 예산 항은 가격/지갑 **비율만** 쓰므로 절대 스케일은 계산에 무관하다.
+    그래서 여기서 정하는 기준은 게임 수학이 아니라 **플레이어가 읽기 쉬운가**다.
+    작은 정수로 두는 이유가 그것이다.
+
+    셋을 따로 정하면 요리 값이 재료 원가와 무관하게 정해질 수 있어 한 블록에 둔다.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    wallet_min: int
+    wallet_max: int
+    """손님이 하루에 낼 수 있는 돈의 범위.
+
+    지갑 자체는 매 방문 서버가 만든다(계약 5절). 여기 있는 것은 요리 값을 어디에
+    맞출지 정하는 **기준선**이다.
+    """
+
+    dish_price_min: int
+    dish_price_max: int
+    """요리 고정가의 범위. 대부분이 지갑 중앙값 근처에 오도록 잡는다."""
+
+    ingredient_price_min: int
+    ingredient_price_max: int
+    """재료 단가의 범위. 요리 하나에 재료 여럿이 들어가므로 요리가보다 훨씬 낮아야 한다."""
+
+
 class Unconfirmed(BaseModel):
     """확정되지 않은 게임 수치. 가정값을 쓴다면 그 사실이 여기 남아야 한다.
 
@@ -193,6 +222,7 @@ class ProjectBible(BaseModel):
     voices: list[VoiceSpec]
     scoring: ScoringSpec
     generation: GenerationSpec
+    economy: EconomySpec
     unconfirmed: list[Unconfirmed] = []
 
     def find_need(self, key: str) -> NeedSpec | None:
@@ -238,6 +268,7 @@ class ProjectBible(BaseModel):
 
         self._check_scoring()
         self._check_generation()
+        self._check_economy()
         return self
 
     def _check_scoring(self) -> None:
@@ -298,6 +329,35 @@ class ProjectBible(BaseModel):
             )
         if generation.min_text_length < 1:
             raise ConfigError(f"min_text_length는 1 이상이어야 한다: {generation.min_text_length}")
+
+    def _check_economy(self) -> None:
+        """세 범위의 관계를 지킨다. 따로 정해지면 요리가 재료 원가와 무관해진다."""
+        economy = self.economy
+
+        for name, low, high in (
+            ("wallet", economy.wallet_min, economy.wallet_max),
+            ("dish_price", economy.dish_price_min, economy.dish_price_max),
+            ("ingredient_price", economy.ingredient_price_min, economy.ingredient_price_max),
+        ):
+            if low < 1:
+                raise ConfigError(f"{name}_min은 1 이상이어야 한다: {low}")
+            if low > high:
+                raise ConfigError(f"{name} 범위가 뒤집혔다: {low} > {high}")
+
+        # 재료 상한이 요리 **하한**보다 높은 것은 막지 않는다. 싼 요리가 싼 재료를 쓰고
+        # 비싼 재료가 비싼 요리로 가는 것은 정상이며, 조합별 마진은 범위로 판정할 수 없다.
+        if economy.ingredient_price_max >= economy.dish_price_max:
+            raise ConfigError(
+                f"가장 비싼 재료가 가장 비싼 요리만큼 한다: "
+                f"{economy.ingredient_price_max} >= {economy.dish_price_max}. "
+                "요리 하나에 재료가 여럿 들어가므로 어떤 조합도 마진이 나지 않는다"
+            )
+        if economy.dish_price_min > economy.wallet_max:
+            raise ConfigError(
+                f"가장 싼 요리가 가장 두둑한 지갑보다 비싸다: "
+                f"{economy.dish_price_min} > {economy.wallet_max}. "
+                "아무도 아무것도 살 수 없다"
+            )
 
 
 def _require_unique_slugs(field: str, keys: Sequence[str]) -> None:

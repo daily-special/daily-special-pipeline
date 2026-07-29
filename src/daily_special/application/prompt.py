@@ -13,6 +13,7 @@ from collections.abc import Sequence
 from daily_special.common.errors import DomainError
 from daily_special.domain.bible import ProjectBible
 from daily_special.domain.guest import Guest
+from daily_special.domain.ingredient import Ingredient
 from daily_special.domain.issue import Issue
 
 _WORLD = """\
@@ -83,6 +84,58 @@ def build_guest_context(
         parts.append(_feedback_section(issues))
 
     parts.append(f"{count}명이 한 식당에 같은 날 들어와도 서로 구별되는지 확인하고 내라.")
+    return "\n\n".join(parts)
+
+
+_INGREDIENT_RULES = """\
+지켜야 할 것:
+
+1. **신선과 보존이 골고루 나와야 한다.** 신선만 있으면 상시 메뉴를 짤 수 없고,
+   보존만 있으면 장보기가 도박이 아니게 된다. 게임의 두 층이 각각 이 둘에 얹혀 있다
+2. **서로 겹치지 않게 만든다.** "말린 강가 허브"와 "건조 강변 약초"는 같은 재료다
+3. **요리로 이어질 수 있어야 한다.** 설명만 읽고 무엇을 만들지 떠오르지 않으면 쓸모가 없다.
+   맛과 쓰임을 적는다
+4. **평범한 식재료가 대부분이다.** 구내식당의 백반이지 궁정 연회가 아니다.
+   진귀한 재료는 소수여야 특별해 보인다
+5. 모든 글은 한국어로 쓴다\
+"""
+
+
+def build_ingredient_instruction() -> str:
+    """재료 생성기의 역할과 규칙."""
+    return (
+        "너는 게임의 식재료 목록을 짓는 작가다. "
+        "아래 세계관의 식당이 쓸 재료들을 만든다.\n\n"
+        f"{_WORLD}\n\n{_INGREDIENT_RULES}"
+    )
+
+
+def build_ingredient_context(
+    bible: ProjectBible,
+    count: int,
+    *,
+    existing: Sequence[Ingredient] = (),
+    issues: Sequence[Issue] = (),
+) -> str:
+    """이번 요청에만 해당하는 것. 어휘와 가격 범위는 스키마 필드 설명이 나른다."""
+    if count < 1:
+        raise DomainError(f"재료 수는 1 이상이어야 한다: {count}")
+
+    parts = [
+        f"재료 {count}개를 만들어라.",
+        "이 식당은 모험가 길드의 구내식당이다. 재료는 아침 시장에서 사 오고, "
+        "신선한 것은 그날 안에 써야 하며, 보존되는 것은 창고에 쌓아둔다.",
+    ]
+
+    if existing:
+        listed = "\n".join(
+            f"- {item.name}({item.kind}), ID {item.ingredient_id}" for item in existing
+        )
+        parts.append("창고에는 이미 다음 재료들이 있다. **이들과 겹치지 않게** 만든다.\n" + listed)
+    if issues:
+        parts.append(_feedback_section(issues))
+
+    parts.append("신선과 보존이 둘 다 들어갔는지 확인하고 내라.")
     return "\n\n".join(parts)
 
 
