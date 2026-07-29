@@ -2,41 +2,156 @@
   "schema_version": "1.0.0",
   "bible_version": "2026-07-30.3",
   "kind": "dishes",
-  "generated_at": "2026-07-30T00:00:00Z",
-  "run_id": "run_handwritten_mock_01",
-
+  "generated_at": "2026-07-29T17:40:25.558821Z",
+  "run_id": "run_20260729_173942",
   "items": [
     {
-      "dish_id": "dish_barley_porridge",
-      "name": "보리죽",
-      "description": "보리를 오래 끓여 부드럽게 푼 죽. 값이 싸고 속이 편해 늦은 밤에도 부담이 없다.",
-      "need_tags": ["mild", "affordable"],
-      "ingredient_ids": ["ingredient_barley_grain", "ingredient_river_herb"],
+      "dish_id": "dish_barley_bean_porridge",
+      "name": "보리콩죽",
+      "description": "푹 삶은 보리와 갈색콩이 속을 천천히 데워 주는 담백한 한 그릇입니다.",
+      "need_tags": [
+        "mild",
+        "restorative",
+        "affordable"
+      ],
+      "ingredient_ids": [
+        "ingredient_barley_sack",
+        "ingredient_dried_beans"
+      ],
       "base_price": 6
     },
     {
-      "dish_id": "dish_boar_bone_stew",
-      "name": "멧돼지 뼈국",
-      "description": "정강이를 오래 고아 국물을 낸 뜨끈한 국. 하루를 걸어온 사람의 다리를 풀어 준다.",
-      "need_tags": ["filling", "restorative"],
-      "ingredient_ids": ["ingredient_boar_shank", "ingredient_barley_grain"],
-      "base_price": 14
+      "dish_id": "dish_smoked_ham_cabbage_stirfry",
+      "name": "훈연햄 양배추볶음",
+      "description": "장작 향 밴 햄과 아삭한 절임 양배추를 볶아 밥반찬으로 넉넉히 냈습니다.",
+      "need_tags": [
+        "filling",
+        "affordable"
+      ],
+      "ingredient_ids": [
+        "ingredient_smoked_ham",
+        "ingredient_salted_cabbage"
+      ],
+      "base_price": 10
     },
     {
-      "dish_id": "dish_fire_pepper_stew",
-      "name": "얼큰 고추찌개",
-      "description": "말린 고추를 넉넉히 풀어 끓인 찌개. 한 술 뜨면 잠이 확 달아난다.",
-      "need_tags": ["stimulating", "filling"],
-      "ingredient_ids": ["ingredient_dried_chili", "ingredient_barley_grain"],
+      "dish_id": "dish_firebean_barley_rice",
+      "name": "불콩장 보리비빔밥",
+      "description": "고슬한 보리에 칼칼한 불콩장을 비벼 먹는, 잠을 깨우는 소박한 한 끼입니다.",
+      "need_tags": [
+        "stimulating",
+        "affordable"
+      ],
+      "ingredient_ids": [
+        "ingredient_barley_sack",
+        "ingredient_firebean_paste",
+        "ingredient_salted_cabbage"
+      ],
+      "base_price": 8
+    },
+    {
+      "dish_id": "dish_radish_pork_soup",
+      "name": "돼지고기 무국",
+      "description": "오래 끓인 앞다리살과 새벽무가 맑고 든든한 국물을 만드는 따뜻한 국입니다.",
+      "need_tags": [
+        "filling",
+        "restorative"
+      ],
+      "ingredient_ids": [
+        "ingredient_guild_pork",
+        "ingredient_morning_radish",
+        "ingredient_barley_sack"
+      ],
+      "base_price": 10
+    },
+    {
+      "dish_id": "dish_trout_radish_soup",
+      "name": "송어무맑은국",
+      "description": "담백한 개울송어와 시원한 무를 함께 끓여 순하게 속을 풀어 주는 국입니다.",
+      "need_tags": [
+        "mild",
+        "restorative"
+      ],
+      "ingredient_ids": [
+        "ingredient_river_trout",
+        "ingredient_morning_radish",
+        "ingredient_sunleaf_greens"
+      ],
+      "base_price": 12
+    },
+    {
+      "dish_id": "dish_spicy_pork_greens",
+      "name": "붉은고추 제육나물볶음",
+      "description": "돼지앞다리와 햇잎나물을 붉은갓고추로 칼칼하게 볶은 힘나는 반찬입니다.",
+      "need_tags": [
+        "filling",
+        "stimulating"
+      ],
+      "ingredient_ids": [
+        "ingredient_guild_pork",
+        "ingredient_sunleaf_greens",
+        "ingredient_redcap_pepper"
+      ],
+      "base_price": 11
+    },
+    {
+      "dish_id": "dish_milk_barley_porridge",
+      "name": "우유보리죽",
+      "description": "호박빛 우유에 보리를 부드럽게 끓여, 지친 날에도 편안히 넘길 수 있습니다.",
+      "need_tags": [
+        "mild",
+        "restorative"
+      ],
+      "ingredient_ids": [
+        "ingredient_amber_milk",
+        "ingredient_barley_sack"
+      ],
+      "base_price": 6
+    },
+    {
+      "dish_id": "dish_ale_braised_pork",
+      "name": "맥아주 돼지조림",
+      "description": "맥아주로 잡내를 눌러 부드럽게 조린 돼지고기라, 오늘만의 주찬으로 좋습니다.",
+      "need_tags": [
+        "filling",
+        "special"
+      ],
+      "ingredient_ids": [
+        "ingredient_guild_pork",
+        "ingredient_cellar_ale",
+        "ingredient_morning_radish"
+      ],
+      "base_price": 12
+    },
+    {
+      "dish_id": "dish_ham_bean_soup",
+      "name": "훈연햄 콩국",
+      "description": "갈색콩을 진득하게 끓이고 훈연햄을 더해 든든한 감칠맛을 낸 국입니다.",
+      "need_tags": [
+        "filling",
+        "affordable"
+      ],
+      "ingredient_ids": [
+        "ingredient_dried_beans",
+        "ingredient_smoked_ham",
+        "ingredient_barley_sack"
+      ],
+      "base_price": 10
+    },
+    {
+      "dish_id": "dish_spicy_cabbage_radish_soup",
+      "name": "얼큰 양배추무국",
+      "description": "절임 양배추와 새벽무에 불콩장을 풀어, 비 오는 순찰 뒤에 좋은 칼칼한 국입니다.",
+      "need_tags": [
+        "stimulating",
+        "affordable"
+      ],
+      "ingredient_ids": [
+        "ingredient_salted_cabbage",
+        "ingredient_morning_radish",
+        "ingredient_firebean_paste"
+      ],
       "base_price": 9
-    },
-    {
-      "dish_id": "dish_cheese_wine_bake",
-      "name": "치즈 포도주 구이",
-      "description": "포도주에 조린 뒤 산양 치즈를 얹어 구운 별미. 축하할 일이 있는 날에 시킨다.",
-      "need_tags": ["special"],
-      "ingredient_ids": ["ingredient_goat_cheese", "ingredient_hearth_wine"],
-      "base_price": 22
     }
   ]
 }

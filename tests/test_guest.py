@@ -22,7 +22,7 @@ from daily_special.domain.satisfaction import IdealRange, ServedDish, VisitState
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BIBLE_PATH = REPO_ROOT / "data" / "project_bible.json"
-GUESTS_PATH = REPO_ROOT / "out" / "packages" / SCHEMA_VERSION / "guests.json"
+GUESTS_PATH = REPO_ROOT / "out" / "mock" / "guests.json"
 
 
 def _load_guests() -> Package[Guest]:

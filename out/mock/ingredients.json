@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0.0",
+  "bible_version": "2026-07-30.3",
+  "kind": "ingredients",
+  "generated_at": "2026-07-30T00:00:00Z",
+  "run_id": "run_handwritten_mock_01",
+
+  "items": [
+    {
+      "ingredient_id": "ingredient_river_herb",
+      "name": "강가 미나리",
+      "kind": "fresh",
+      "description": "물가에서 아침에 걷어 오는 향채. 국물에 넣으면 비린 기를 걷고 끝맛을 산뜻하게 만든다.",
+      "base_price": 2,
+      "dietary_conflicts": []
+    },
+    {
+      "ingredient_id": "ingredient_boar_shank",
+      "name": "멧돼지 정강이",
+      "kind": "fresh",
+      "description": "질기지만 오래 고면 국물이 진해지는 부위. 든든한 한 그릇의 바탕이 된다.",
+      "base_price": 7,
+      "dietary_conflicts": ["no_meat"]
+    },
+    {
+      "ingredient_id": "ingredient_barley_grain",
+      "name": "보리",
+      "kind": "preserved",
+      "description": "창고에 쌓아두는 주식 곡물. 양을 불려 주고 값이 싸서 가성비 백반의 기둥이다.",
+      "base_price": 1,
+      "dietary_conflicts": []
+    },
+    {
+      "ingredient_id": "ingredient_dried_chili",
+      "name": "말린 고추",
+      "kind": "preserved",
+      "description": "매달아 말린 붉은 고추. 조금만 넣어도 국물이 얼얼해져 정신이 번쩍 든다.",
+      "base_price": 3,
+      "dietary_conflicts": ["no_spicy"]
+    },
+    {
+      "ingredient_id": "ingredient_goat_cheese",
+      "name": "산양 치즈",
+      "kind": "preserved",
+      "description": "고산 마을에서 들여오는 단단한 치즈. 녹이면 고소함이 퍼져 소박한 요리를 특별하게 만든다.",
+      "base_price": 6,
+      "dietary_conflicts": ["no_dairy"]
+    },
+    {
+      "ingredient_id": "ingredient_hearth_wine",
+      "name": "화덕 포도주",
+      "kind": "preserved",
+      "description": "값싼 조리용 포도주. 고기의 누린내를 잡고 국물에 깊이를 더한다.",
+      "base_price": 4,
+      "dietary_conflicts": ["no_alcohol"]
+    }
+  ]
+}

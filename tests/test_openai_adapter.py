@@ -50,7 +50,11 @@ def _llm(outcomes: list[Any], **kwargs: Any) -> tuple[OpenAiLlm, _StubResponses]
 
 
 def _ok(text: str = "좋다") -> SimpleNamespace:
-    return SimpleNamespace(output_parsed=_Answer(text=text))
+    """실제 응답처럼 usage를 함께 준다 — 어댑터가 토큰을 기록하기 때문이다."""
+    return SimpleNamespace(
+        output_parsed=_Answer(text=text),
+        usage=SimpleNamespace(input_tokens=100, output_tokens=50),
+    )
 
 
 async def _generate(adapter: OpenAiLlm, tier: Tier = Tier.QUALITY) -> _Answer:
@@ -133,7 +137,7 @@ async def test_non_transport_failure_is_not_retried() -> None:
 
 async def test_missing_structured_output_is_an_error() -> None:
     """거부되었거나 응답이 빈 경우. None을 그대로 흘려보내면 훨씬 뒤에서 터진다."""
-    adapter, _ = _llm([SimpleNamespace(output_parsed=None)])
+    adapter, _ = _llm([SimpleNamespace(output_parsed=None, usage=None)])
 
     with pytest.raises(LlmError, match="구조화 출력"):
         await _generate(adapter)

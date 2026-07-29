@@ -2,57 +2,116 @@
   "schema_version": "1.0.0",
   "bible_version": "2026-07-30.3",
   "kind": "ingredients",
-  "generated_at": "2026-07-30T00:00:00Z",
-  "run_id": "run_handwritten_mock_01",
-
+  "generated_at": "2026-07-29T17:40:15.641766Z",
+  "run_id": "run_20260729_173942",
   "items": [
     {
-      "ingredient_id": "ingredient_river_herb",
-      "name": "강가 미나리",
+      "ingredient_id": "ingredient_morning_radish",
+      "name": "새벽무",
       "kind": "fresh",
-      "description": "물가에서 아침에 걷어 오는 향채. 국물에 넣으면 비린 기를 걷고 끝맛을 산뜻하게 만든다.",
+      "description": "단단하고 맑은 단맛이 나는 작은 무다. 국물과 조림에 넣으면 시원한 맛을 내고, 얇게 썰어 반찬으로도 낸다.",
       "base_price": 2,
       "dietary_conflicts": []
     },
     {
-      "ingredient_id": "ingredient_boar_shank",
-      "name": "멧돼지 정강이",
+      "ingredient_id": "ingredient_guild_pork",
+      "name": "길드 돼지앞다리",
       "kind": "fresh",
-      "description": "질기지만 오래 고면 국물이 진해지는 부위. 든든한 한 그릇의 바탕이 된다.",
-      "base_price": 7,
-      "dietary_conflicts": ["no_meat"]
+      "description": "기름이 지나치지 않은 앞다리살로, 볶음과 제육국에 알맞다. 오래 끓이면 부드러워져 든든한 정식의 주찬이 된다.",
+      "base_price": 4,
+      "dietary_conflicts": [
+        "no_meat"
+      ]
     },
     {
-      "ingredient_id": "ingredient_barley_grain",
-      "name": "보리",
+      "ingredient_id": "ingredient_river_trout",
+      "name": "개울송어",
+      "kind": "fresh",
+      "description": "변방 개울에서 들어오는 담백한 민물생선이다. 소금구이로 내거나 무와 함께 끓여 맑은 생선국을 만들기 좋다.",
+      "base_price": 5,
+      "dietary_conflicts": []
+    },
+    {
+      "ingredient_id": "ingredient_sunleaf_greens",
+      "name": "햇잎나물",
+      "kind": "fresh",
+      "description": "부드러운 어린 잎채소로 살짝 데치면 고소하고 풋풋하다. 나물무침, 된장국, 고기 곁들임에 두루 쓴다.",
+      "base_price": 2,
+      "dietary_conflicts": []
+    },
+    {
+      "ingredient_id": "ingredient_amber_milk",
+      "name": "호박빛 우유",
+      "kind": "fresh",
+      "description": "목장 마차가 아침마다 배달하는 순한 우유다. 죽과 수프를 부드럽게 만들고, 감자 으깬 요리에도 넣는다.",
+      "base_price": 3,
+      "dietary_conflicts": [
+        "no_dairy"
+      ]
+    },
+    {
+      "ingredient_id": "ingredient_redcap_pepper",
+      "name": "붉은갓고추",
+      "kind": "fresh",
+      "description": "작지만 알싸한 매운맛이 강한 고추다. 찌개와 볶음에 조금 넣어 칼칼하게 만들며 장아찌 재료로도 쓴다.",
+      "base_price": 2,
+      "dietary_conflicts": [
+        "no_spicy"
+      ]
+    },
+    {
+      "ingredient_id": "ingredient_barley_sack",
+      "name": "자루보리",
       "kind": "preserved",
-      "description": "창고에 쌓아두는 주식 곡물. 양을 불려 주고 값이 싸서 가성비 백반의 기둥이다.",
+      "description": "껍질을 벗겨 말린 보리알이다. 쌀에 섞어 고슬고슬한 밥을 짓거나, 푹 끓여 속 편한 보리죽을 만든다.",
       "base_price": 1,
       "dietary_conflicts": []
     },
     {
-      "ingredient_id": "ingredient_dried_chili",
-      "name": "말린 고추",
+      "ingredient_id": "ingredient_salted_cabbage",
+      "name": "소금절임 양배추",
       "kind": "preserved",
-      "description": "매달아 말린 붉은 고추. 조금만 넣어도 국물이 얼얼해져 정신이 번쩍 든다.",
+      "description": "굵은 소금에 절여 아삭함과 새콤함이 남은 양배추다. 고기 곁들임, 볶음밥, 시원한 국물의 건더기로 쓴다.",
+      "base_price": 2,
+      "dietary_conflicts": []
+    },
+    {
+      "ingredient_id": "ingredient_dried_beans",
+      "name": "갈색콩",
+      "kind": "preserved",
+      "description": "말려 두었다가 불려 쓰는 소박한 콩이다. 푹 끓인 콩수프와 조림 반찬에 넣으면 고소함과 포만감을 더한다.",
+      "base_price": 2,
+      "dietary_conflicts": []
+    },
+    {
+      "ingredient_id": "ingredient_smoked_ham",
+      "name": "장작훈연 햄",
+      "kind": "preserved",
+      "description": "소금에 재운 뒤 장작 연기로 익힌 돼지고기 햄이다. 얇게 썰어 반찬으로 내고, 콩국이나 볶음에 감칠맛을 더한다.",
+      "base_price": 5,
+      "dietary_conflicts": [
+        "no_meat"
+      ]
+    },
+    {
+      "ingredient_id": "ingredient_firebean_paste",
+      "name": "불콩장",
+      "kind": "preserved",
+      "description": "매운 붉은콩과 향신가루를 갈아 만든 짭짤한 장이다. 국과 볶음의 간을 맞추며 적은 양으로도 칼칼한 맛을 낸다.",
       "base_price": 3,
-      "dietary_conflicts": ["no_spicy"]
+      "dietary_conflicts": [
+        "no_spicy"
+      ]
     },
     {
-      "ingredient_id": "ingredient_goat_cheese",
-      "name": "산양 치즈",
+      "ingredient_id": "ingredient_cellar_ale",
+      "name": "지하실 맥아주",
       "kind": "preserved",
-      "description": "고산 마을에서 들여오는 단단한 치즈. 녹이면 고소함이 퍼져 소박한 요리를 특별하게 만든다.",
-      "base_price": 6,
-      "dietary_conflicts": ["no_dairy"]
-    },
-    {
-      "ingredient_id": "ingredient_hearth_wine",
-      "name": "화덕 포도주",
-      "kind": "preserved",
-      "description": "값싼 조리용 포도주. 고기의 누린내를 잡고 국물에 깊이를 더한다.",
-      "base_price": 4,
-      "dietary_conflicts": ["no_alcohol"]
+      "description": "보리를 발효해 빚은 옅은 갈색 술이다. 손님상에는 작은 잔으로 내고, 고기 조림의 잡내를 잡는 데도 쓴다.",
+      "base_price": 3,
+      "dietary_conflicts": [
+        "no_alcohol"
+      ]
     }
   ]
 }

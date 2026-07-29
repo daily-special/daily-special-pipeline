@@ -17,6 +17,9 @@ dev = [
     "import-linter>=2.3",
 ]
 
+[project.scripts]
+daily-special = "daily_special.adapter.inbound.cli:main"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

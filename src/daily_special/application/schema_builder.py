@@ -13,6 +13,7 @@
 같은 변경을 두 번 냈을 것이다.
 """
 
+from collections import Counter
 from collections.abc import Sequence
 from enum import StrEnum
 from typing import Any, cast
@@ -477,17 +478,32 @@ class LineBatchSchema(BatchSchema):
     """
 
     def to_lines(self, response: BaseModel, situation: str, subject: str | None) -> list[Line]:
+        """ID까지 코드가 짓는다.
+
+        모델에게 물으면 자리마다 겹친다 — 한 호출은 다른 자리를 모르므로 `order`
+        자리 여섯 곳이 전부 `line_order_gruff_01`을 낸다. ID는 (상황·대상·말투)로
+        완전히 결정되는 값이라 애초에 물을 것이 아니다. 상황과 대상을 묻지 않는 것과
+        같은 이유다.
+        """
         items = cast(list[BaseModel], _field(response, "lines"))
-        return [
-            Line(
-                line_id=cast(str, _field(item, "line_id")),
-                situation=situation,
-                subject=subject,
-                voice=str(_field(item, "voice")),
-                text=cast(str, _field(item, "text")),
+        seen: Counter[str] = Counter()
+        lines: list[Line] = []
+
+        for item in items:
+            voice = str(_field(item, "voice"))
+            stem = "_".join(part for part in ("line", situation, subject, voice) if part)
+            seen[stem] += 1
+            lines.append(
+                Line(
+                    line_id=f"{stem}_{seen[stem]:02d}",
+                    situation=situation,
+                    subject=subject,
+                    voice=voice,
+                    text=cast(str, _field(item, "text")),
+                )
             )
-            for item in items
-        ]
+
+        return lines
 
 
 def build_line_batch_schema(bible: ProjectBible) -> LineBatchSchema:
@@ -507,15 +523,6 @@ def build_line_batch_schema(bible: ProjectBible) -> LineBatchSchema:
     item_model = create_model(
         "GeneratedLine",
         __config__=ConfigDict(extra="forbid"),
-        line_id=(
-            str,
-            Field(
-                description=(
-                    "대사 식별자. 'line_'으로 시작하고 소문자·숫자·밑줄만 쓴다 "
-                    "(예: line_greet_gruff_01). 64자 이내."
-                )
-            ),
-        ),
         voice=(voice_enum, Field(description=f"이 대사의 말투 — {voices}")),
         text=(
             str,

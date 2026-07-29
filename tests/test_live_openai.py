@@ -25,13 +25,13 @@ from daily_special.application.review_guests import review_guests
 from daily_special.domain.guest import Guest
 from daily_special.domain.ingredient import Ingredient
 from daily_special.domain.issue import Severity, has_errors
-from daily_special.domain.package import SCHEMA_VERSION, Package
+from daily_special.domain.package import Package
 
 pytestmark = pytest.mark.live
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BIBLE_PATH = REPO_ROOT / "data" / "project_bible.json"
-GUESTS_PATH = REPO_ROOT / "out" / "packages" / SCHEMA_VERSION / "guests.json"
+GUESTS_PATH = REPO_ROOT / "out" / "mock" / "guests.json"
 
 
 async def test_generates_real_guests() -> None:

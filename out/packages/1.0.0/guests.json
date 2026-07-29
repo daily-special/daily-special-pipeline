@@ -2,65 +2,210 @@
   "schema_version": "1.0.0",
   "bible_version": "2026-07-30.3",
   "kind": "guests",
-  "generated_at": "2026-07-27T00:00:00Z",
-  "run_id": "run_handwritten_mock_01",
-
+  "generated_at": "2026-07-29T17:40:01.158162Z",
+  "run_id": "run_20260729_173942",
   "items": [
     {
-      "guest_id": "guest_ashen_scout_01",
-      "name": "레하",
-      "title": "잿빛 정찰병",
-      "bio": "북쪽 능선을 훑고 돌아오는 장거리 정찰병. 사흘에 한 번 내려와 말없이 한 그릇을 비우고 간다.",
+      "guest_id": "guest_dusty_patrol_01",
+      "name": "도윤",
+      "title": "변방 순찰자",
+      "bio": "성문 밖 순찰을 마치고 들르는 경비대원이다. 먼지투성이 장화를 벗어 두고 든든한 한 끼로 다음 근무를 버틴다.",
       "voice": "gruff",
-      "personality": "칭찬을 아끼지만 맛있으면 그릇을 끝까지 비운다. 불평은 한 단어로 끝내고, 대신 다음에 또 온다.",
-      "preferred_needs": ["filling", "restorative"],
+      "personality": "필요한 말만 툭툭 던지며, 맛을 칭찬해도 고개만 끄덕인다. 배식량이 넉넉하면 말없이 다시 찾는다.",
+      "preferred_needs": [
+        "filling",
+        "affordable"
+      ],
       "ideal_ranges": {
-        "heat": { "low": 60, "high": 80 },
-        "cook_time": { "low": 50, "high": 70 },
-        "seasoning": { "low": 55, "high": 75 }
+        "cook_time": {
+          "low": 68,
+          "high": 86
+        },
+        "seasoning": {
+          "low": 52,
+          "high": 66
+        }
       },
       "dietary": []
     },
     {
-      "guest_id": "guest_lantern_priest_01",
-      "name": "미르베",
-      "title": "등불 사제",
-      "bio": "부상자를 돌보다 늦은 시각에야 내려온다. 계율을 지키느라 먹을 수 있는 것이 많지 않다.",
+      "guest_id": "guest_pale_clerk_02",
+      "name": "세린",
+      "title": "길드 서기",
+      "bio": "의뢰 장부와 영수증을 하루 종일 대조하는 길드 서기다. 속을 편히 달랜 뒤 저녁 장부 마감을 하려고 식당에 온다.",
       "voice": "polite",
-      "personality": "불만도 에둘러 말해서 무엇이 잘못됐는지 알아채기 어렵다. 대신 맞으면 오래 기억하고 고마워한다.",
-      "preferred_needs": ["mild", "restorative"],
+      "personality": "접시를 받으면 먼저 고맙다고 말하고, 불편한 점도 조심스럽게 표현한다. 음식의 온도와 속 편안함을 유난히 살핀다.",
+      "preferred_needs": [
+        "mild",
+        "restorative"
+      ],
       "ideal_ranges": {
-        "heat": { "low": 15, "high": 35 },
-        "seasoning": { "low": 20, "high": 40 }
+        "heat": {
+          "low": 30,
+          "high": 46
+        },
+        "cook_time": {
+          "low": 54,
+          "high": 72
+        },
+        "seasoning": {
+          "low": 18,
+          "high": 32
+        }
       },
-      "dietary": ["no_meat", "no_alcohol"]
+      "dietary": [
+        "no_spicy"
+      ]
     },
     {
-      "guest_id": "guest_ember_brawler_01",
-      "name": "도르그",
-      "title": "잉걸 주먹잡이",
-      "bio": "투기장을 돌며 상금을 버는 격투가. 뭘 먹든 개의치 않지만 미지근한 것만은 못 견딘다.",
+      "guest_id": "guest_bright_courier_03",
+      "name": "하린",
+      "title": "전령 견습",
+      "bio": "길드와 시장 사이를 뛰어다니며 봉인을 나르는 전령 견습생이다. 짧은 식사 시간에도 새롭고 기분 좋은 메뉴를 기대한다.",
       "voice": "cheerful",
-      "personality": "감탄이 크고 말이 많다. 마음에 들면 주변 자리까지 떠들어 소문을 낸다.",
-      "preferred_needs": ["stimulating", "filling"],
+      "personality": "작은 변화에도 눈을 반짝이며 감탄하고, 먹은 메뉴 이야기를 동료들에게 곧잘 전한다. 기다리는 동안에도 발끝을 들썩인다.",
+      "preferred_needs": [
+        "special",
+        "stimulating"
+      ],
       "ideal_ranges": {
-        "heat": { "low": 80, "high": 100 }
+        "heat": {
+          "low": 70,
+          "high": 88
+        },
+        "seasoning": {
+          "low": 62,
+          "high": 78
+        }
       },
       "dietary": []
     },
     {
-      "guest_id": "guest_ledger_porter_01",
-      "name": "핀",
-      "title": "장부지기 짐꾼",
-      "bio": "길드 창고의 물목을 세고 짐을 나른다. 품삯이 박해 늘 값부터 본다.",
+      "guest_id": "guest_weary_caravaner_04",
+      "name": "무진",
+      "title": "짐마차꾼",
+      "bio": "상단의 짐마차를 몰고 이틀 만에 길드에 도착한 운반꾼이다. 마른 목과 굳은 어깨를 풀어 줄 따뜻하고 푹 익은 밥을 찾는다.",
       "voice": "weary",
-      "personality": "기대가 낮아 웬만하면 군말 없이 먹는다. 그래서 작은 정성에도 눈에 띄게 놀란다.",
-      "preferred_needs": ["affordable", "filling"],
+      "personality": "말끝을 길게 흐리고 빈자리에 조용히 앉는다. 기대는 낮지만 따뜻한 국물 한 숟갈에는 뜻밖에 표정이 누그러진다.",
+      "preferred_needs": [
+        "restorative",
+        "filling"
+      ],
       "ideal_ranges": {
-        "cook_time": { "low": 55, "high": 80 },
-        "seasoning": { "low": 45, "high": 65 }
+        "heat": {
+          "low": 24,
+          "high": 40
+        },
+        "cook_time": {
+          "low": 76,
+          "high": 94
+        }
       },
-      "dietary": ["no_spicy"]
+      "dietary": []
+    },
+    {
+      "guest_id": "guest_proud_assessor_05",
+      "name": "이베르",
+      "title": "장비 감정사",
+      "bio": "모험가들의 낡은 장비 값을 매기는 감정사다. 값싼 식당 음식도 재료와 손질이 좋다면 제대로 평가해 주러 찾아온다.",
+      "voice": "haughty",
+      "personality": "한입 먹고 잠시 뜸을 들인 뒤 단정적으로 평한다. 까다로워 보여도 실력이 있으면 아낌없이 인정하고 팁을 남긴다.",
+      "preferred_needs": [
+        "special"
+      ],
+      "ideal_ranges": {
+        "heat": {
+          "low": 58,
+          "high": 74
+        },
+        "cook_time": {
+          "low": 32,
+          "high": 48
+        },
+        "seasoning": {
+          "low": 46,
+          "high": 58
+        }
+      },
+      "dietary": []
+    },
+    {
+      "guest_id": "guest_green_healer_06",
+      "name": "보라",
+      "title": "약초 채집꾼",
+      "bio": "길드 의무실에 납품할 약초를 손질하는 채집꾼이다. 고기 없이도 몸에 부담 없고 기운이 나는 식사를 먹으러 온다.",
+      "voice": "polite",
+      "personality": "낯선 재료의 향을 맡아 보고 조용히 미소 짓는다. 말수는 적지만 좋은 채소가 쓰였으면 채집처까지 알려 준다.",
+      "preferred_needs": [
+        "mild",
+        "restorative"
+      ],
+      "ideal_ranges": {
+        "cook_time": {
+          "low": 48,
+          "high": 64
+        },
+        "seasoning": {
+          "low": 24,
+          "high": 38
+        }
+      },
+      "dietary": [
+        "no_meat",
+        "no_spicy"
+      ]
+    },
+    {
+      "guest_id": "guest_iron_apprentice_07",
+      "name": "태오",
+      "title": "대장간 심부름",
+      "bio": "대장간과 길드 창고 사이에서 쇠붙이를 나르는 심부름꾼이다. 땀을 많이 흘린 날에는 진하고 바싹 익힌 밥 한 그릇을 원한다.",
+      "voice": "cheerful",
+      "personality": "식당 문을 열 때부터 배고프다고 크게 말하며, 먹는 속도도 빠르다. 만족하면 주방까지 들리게 좋다고 외친다.",
+      "preferred_needs": [
+        "filling",
+        "stimulating"
+      ],
+      "ideal_ranges": {
+        "heat": {
+          "low": 78,
+          "high": 96
+        },
+        "cook_time": {
+          "low": 18,
+          "high": 34
+        },
+        "seasoning": {
+          "low": 70,
+          "high": 86
+        }
+      },
+      "dietary": []
+    },
+    {
+      "guest_id": "guest_quiet_mapmaker_08",
+      "name": "연희",
+      "title": "지도 제도사",
+      "bio": "탐사대의 낡은 지도와 새 지형 기록을 베끼는 제도사다. 잉크 묻은 손을 씻고, 오래 앉아도 부담 없는 저렴한 식사를 고른다.",
+      "voice": "weary",
+      "personality": "접시의 모양과 색을 한참 살핀 뒤 낮은 목소리로 의견을 남긴다. 지나친 양념보다 재료 맛이 선명한 쪽을 선호한다.",
+      "preferred_needs": [
+        "affordable",
+        "mild"
+      ],
+      "ideal_ranges": {
+        "heat": {
+          "low": 42,
+          "high": 58
+        },
+        "seasoning": {
+          "low": 34,
+          "high": 48
+        }
+      },
+      "dietary": [
+        "no_dairy"
+      ]
     }
   ]
 }

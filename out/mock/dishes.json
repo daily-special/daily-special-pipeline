@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "bible_version": "2026-07-30.3",
+  "kind": "dishes",
+  "generated_at": "2026-07-30T00:00:00Z",
+  "run_id": "run_handwritten_mock_01",
+
+  "items": [
+    {
+      "dish_id": "dish_barley_porridge",
+      "name": "보리죽",
+      "description": "보리를 오래 끓여 부드럽게 푼 죽. 값이 싸고 속이 편해 늦은 밤에도 부담이 없다.",
+      "need_tags": ["mild", "affordable"],
+      "ingredient_ids": ["ingredient_barley_grain", "ingredient_river_herb"],
+      "base_price": 6
+    },
+    {
+      "dish_id": "dish_boar_bone_stew",
+      "name": "멧돼지 뼈국",
+      "description": "정강이를 오래 고아 국물을 낸 뜨끈한 국. 하루를 걸어온 사람의 다리를 풀어 준다.",
+      "need_tags": ["filling", "restorative"],
+      "ingredient_ids": ["ingredient_boar_shank", "ingredient_barley_grain"],
+      "base_price": 14
+    },
+    {
+      "dish_id": "dish_fire_pepper_stew",
+      "name": "얼큰 고추찌개",
+      "description": "말린 고추를 넉넉히 풀어 끓인 찌개. 한 술 뜨면 잠이 확 달아난다.",
+      "need_tags": ["stimulating", "filling"],
+      "ingredient_ids": ["ingredient_dried_chili", "ingredient_barley_grain"],
+      "base_price": 9
+    },
+    {
+      "dish_id": "dish_cheese_wine_bake",
+      "name": "치즈 포도주 구이",
+      "description": "포도주에 조린 뒤 산양 치즈를 얹어 구운 별미. 축하할 일이 있는 날에 시킨다.",
+      "need_tags": ["special"],
+      "ingredient_ids": ["ingredient_goat_cheese", "ingredient_hearth_wine"],
+      "base_price": 22
+    }
+  ]
+}

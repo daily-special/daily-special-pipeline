@@ -2,43 +2,568 @@
   "schema_version": "1.0.0",
   "bible_version": "2026-07-30.3",
   "kind": "lines",
-  "generated_at": "2026-07-30T00:00:00Z",
-  "run_id": "run_handwritten_mock_01",
+  "generated_at": "2026-07-29T17:45:37.083576Z",
+  "run_id": "run_20260729_174448",
   "items": [
     {
       "line_id": "line_greet_gruff_01",
       "situation": "greet",
       "subject": null,
       "voice": "gruff",
-      "text": "왔다."
+      "text": "창가 자리, 비었나."
     },
     {
       "line_id": "line_greet_polite_01",
       "situation": "greet",
       "subject": null,
       "voice": "polite",
-      "text": "안녕하세요, 자리 있을까요?"
+      "text": "오늘도 신세 좀 지겠습니다."
     },
     {
       "line_id": "line_greet_cheerful_01",
       "situation": "greet",
       "subject": null,
       "voice": "cheerful",
-      "text": "우와, 오늘도 냄새 좋다!"
+      "text": "이야, 벌써 좋은 냄새가 나네요!"
     },
     {
       "line_id": "line_greet_weary_01",
       "situation": "greet",
       "subject": null,
       "voice": "weary",
-      "text": "……아, 이제야 앉네."
+      "text": "앉으니 살 것 같네…"
     },
     {
       "line_id": "line_greet_haughty_01",
       "situation": "greet",
       "subject": null,
       "voice": "haughty",
-      "text": "여기가 요즘 말 나오는 곳인가."
+      "text": "오늘은 조용한 자리로 하지."
+    },
+    {
+      "line_id": "line_order_filling_gruff_01",
+      "situation": "order",
+      "subject": "filling",
+      "voice": "gruff",
+      "text": "새벽부터 짐만 날랐다. 빈속이네."
+    },
+    {
+      "line_id": "line_order_filling_polite_01",
+      "situation": "order",
+      "subject": "filling",
+      "voice": "polite",
+      "text": "오래 버틸 수 있게 챙겨주시면 좋겠습니다."
+    },
+    {
+      "line_id": "line_order_filling_cheerful_01",
+      "situation": "order",
+      "subject": "filling",
+      "voice": "cheerful",
+      "text": "오늘은 세 접시도 거뜬할 것 같아요!"
+    },
+    {
+      "line_id": "line_order_filling_weary_01",
+      "situation": "order",
+      "subject": "filling",
+      "voice": "weary",
+      "text": "한 끼 먹고 나면 저녁 순찰까지 갈 수 있을까요."
+    },
+    {
+      "line_id": "line_order_filling_haughty_01",
+      "situation": "order",
+      "subject": "filling",
+      "voice": "haughty",
+      "text": "이 몸을 다시 일터로 보낼 만한 걸로 부탁하지."
+    },
+    {
+      "line_id": "line_order_restorative_gruff_01",
+      "situation": "order",
+      "subject": "restorative",
+      "voice": "gruff",
+      "text": "순찰 끝났더니 뼈마디가 시리군."
+    },
+    {
+      "line_id": "line_order_restorative_polite_01",
+      "situation": "order",
+      "subject": "restorative",
+      "voice": "polite",
+      "text": "다친 곳이 좀 있어, 부드러운 게 좋겠습니다."
+    },
+    {
+      "line_id": "line_order_restorative_cheerful_01",
+      "situation": "order",
+      "subject": "restorative",
+      "voice": "cheerful",
+      "text": "아침부터 뛰었더니 배가 텅 비었어요!"
+    },
+    {
+      "line_id": "line_order_restorative_weary_01",
+      "situation": "order",
+      "subject": "restorative",
+      "voice": "weary",
+      "text": "따뜻한 김만 봐도 살 것 같네요."
+    },
+    {
+      "line_id": "line_order_restorative_haughty_01",
+      "situation": "order",
+      "subject": "restorative",
+      "voice": "haughty",
+      "text": "오늘은 기력을 되찾을 만한 상차림으로."
+    },
+    {
+      "line_id": "line_order_mild_gruff_01",
+      "situation": "order",
+      "subject": "mild",
+      "voice": "gruff",
+      "text": "속이 예민하니, 얌전한 걸로."
+    },
+    {
+      "line_id": "line_order_mild_polite_01",
+      "situation": "order",
+      "subject": "mild",
+      "voice": "polite",
+      "text": "오늘은 위가 편한 것으로 부탁드립니다."
+    },
+    {
+      "line_id": "line_order_mild_cheerful_01",
+      "situation": "order",
+      "subject": "mild",
+      "voice": "cheerful",
+      "text": "어제 야식이 과했나 봐요, 살살 달래 주세요!"
+    },
+    {
+      "line_id": "line_order_mild_weary_01",
+      "situation": "order",
+      "subject": "mild",
+      "voice": "weary",
+      "text": "뭐만 먹으면 더부룩해서… 가벼운 거 있을까."
+    },
+    {
+      "line_id": "line_order_mild_haughty_01",
+      "situation": "order",
+      "subject": "mild",
+      "voice": "haughty",
+      "text": "오늘은 내 속에 무리 없는 것으로 내오시죠."
+    },
+    {
+      "line_id": "line_order_stimulating_gruff_01",
+      "situation": "order",
+      "subject": "stimulating",
+      "voice": "gruff",
+      "text": "밤새 보초 섰더니 정신이 안 돌아."
+    },
+    {
+      "line_id": "line_order_stimulating_polite_01",
+      "situation": "order",
+      "subject": "stimulating",
+      "voice": "polite",
+      "text": "오후 순찰이 남아서, 기운을 좀 깨우고 싶습니다."
+    },
+    {
+      "line_id": "line_order_stimulating_cheerful_01",
+      "situation": "order",
+      "subject": "stimulating",
+      "voice": "cheerful",
+      "text": "비 맞고 왔더니 입안까지 축 처졌어요!"
+    },
+    {
+      "line_id": "line_order_stimulating_weary_01",
+      "situation": "order",
+      "subject": "stimulating",
+      "voice": "weary",
+      "text": "장부 숫자가 자꾸 흐려져서 말이지…."
+    },
+    {
+      "line_id": "line_order_stimulating_haughty_01",
+      "situation": "order",
+      "subject": "stimulating",
+      "voice": "haughty",
+      "text": "이 둔한 피로쯤은 한입이면 물러나야지."
+    },
+    {
+      "line_id": "line_order_affordable_gruff_01",
+      "situation": "order",
+      "subject": "affordable",
+      "voice": "gruff",
+      "text": "오늘 품삯이 아직 안 들어왔어."
+    },
+    {
+      "line_id": "line_order_affordable_polite_01",
+      "situation": "order",
+      "subject": "affordable",
+      "voice": "polite",
+      "text": "동전 몇 닢으로 든든하면 좋겠습니다."
+    },
+    {
+      "line_id": "line_order_affordable_cheerful_01",
+      "situation": "order",
+      "subject": "affordable",
+      "voice": "cheerful",
+      "text": "주머니는 가볍지만 배는 비워 뒀어요!"
+    },
+    {
+      "line_id": "line_order_affordable_weary_01",
+      "situation": "order",
+      "subject": "affordable",
+      "voice": "weary",
+      "text": "순찰비가 또 밀렸네… 배는 고프고."
+    },
+    {
+      "line_id": "line_order_affordable_haughty_01",
+      "situation": "order",
+      "subject": "affordable",
+      "voice": "haughty",
+      "text": "지출은 줄여야지. 허투루 채울 배는 아니다."
+    },
+    {
+      "line_id": "line_order_special_gruff_01",
+      "situation": "order",
+      "subject": "special",
+      "voice": "gruff",
+      "text": "오늘은 늘 먹던 건 말고."
+    },
+    {
+      "line_id": "line_order_special_polite_01",
+      "situation": "order",
+      "subject": "special",
+      "voice": "polite",
+      "text": "오늘만의 한 접시가 있다면 부탁드립니다."
+    },
+    {
+      "line_id": "line_order_special_cheerful_01",
+      "situation": "order",
+      "subject": "special",
+      "voice": "cheerful",
+      "text": "휴, 오늘은 나한테 작은 축제를 열어야겠어요!"
+    },
+    {
+      "line_id": "line_order_special_weary_01",
+      "situation": "order",
+      "subject": "special",
+      "voice": "weary",
+      "text": "오늘은 좀 낯선 맛이면 좋겠네…"
+    },
+    {
+      "line_id": "line_order_special_haughty_01",
+      "situation": "order",
+      "subject": "special",
+      "voice": "haughty",
+      "text": "평소 것으론 오늘의 수고를 기리기 부족하군."
+    },
+    {
+      "line_id": "line_feedback_high_heat_gruff_01",
+      "situation": "feedback_high",
+      "subject": "heat",
+      "voice": "gruff",
+      "text": "겉이 너무 세게 익었어."
+    },
+    {
+      "line_id": "line_feedback_high_heat_polite_01",
+      "situation": "feedback_high",
+      "subject": "heat",
+      "voice": "polite",
+      "text": "다음엔 불을 조금만 낮춰 주시겠어요?"
+    },
+    {
+      "line_id": "line_feedback_high_heat_cheerful_01",
+      "situation": "feedback_high",
+      "subject": "heat",
+      "voice": "cheerful",
+      "text": "오, 이 바삭함은 제겐 좀 벅차네요!"
+    },
+    {
+      "line_id": "line_feedback_high_heat_weary_01",
+      "situation": "feedback_high",
+      "subject": "heat",
+      "voice": "weary",
+      "text": "오늘은 뭉근한 쪽이 더 좋았을 텐데."
+    },
+    {
+      "line_id": "line_feedback_high_heat_haughty_01",
+      "situation": "feedback_high",
+      "subject": "heat",
+      "voice": "haughty",
+      "text": "강한 불맛은 내 취향보다 한발 앞섰군요."
+    },
+    {
+      "line_id": "line_feedback_high_cook_time_gruff_01",
+      "situation": "feedback_high",
+      "subject": "cook_time",
+      "voice": "gruff",
+      "text": "너무 푹 익었어. 다음엔 덜 익혀."
+    },
+    {
+      "line_id": "line_feedback_high_cook_time_polite_01",
+      "situation": "feedback_high",
+      "subject": "cook_time",
+      "voice": "polite",
+      "text": "제겐 조금 더 식감이 있었으면 좋겠습니다."
+    },
+    {
+      "line_id": "line_feedback_high_cook_time_cheerful_01",
+      "situation": "feedback_high",
+      "subject": "cook_time",
+      "voice": "cheerful",
+      "text": "와, 입에서 녹네! 난 좀 씹는 맛이 좋아!"
+    },
+    {
+      "line_id": "line_feedback_high_cook_time_weary_01",
+      "situation": "feedback_high",
+      "subject": "cook_time",
+      "voice": "weary",
+      "text": "부드럽긴 한데… 다음엔 덜 익힌 걸로."
+    },
+    {
+      "line_id": "line_feedback_high_cook_time_haughty_01",
+      "situation": "feedback_high",
+      "subject": "cook_time",
+      "voice": "haughty",
+      "text": "지나치게 무르군. 식감은 남겨두도록."
+    },
+    {
+      "line_id": "line_feedback_high_seasoning_gruff_01",
+      "situation": "feedback_high",
+      "subject": "seasoning",
+      "voice": "gruff",
+      "text": "간이 좀 세다. 다음엔 덜 넣어."
+    },
+    {
+      "line_id": "line_feedback_high_seasoning_polite_01",
+      "situation": "feedback_high",
+      "subject": "seasoning",
+      "voice": "polite",
+      "text": "제겐 조금 짜게 느껴졌습니다."
+    },
+    {
+      "line_id": "line_feedback_high_seasoning_cheerful_01",
+      "situation": "feedback_high",
+      "subject": "seasoning",
+      "voice": "cheerful",
+      "text": "와, 물이 절로 당기네! 다음엔 순하게!"
+    },
+    {
+      "line_id": "line_feedback_high_seasoning_weary_01",
+      "situation": "feedback_high",
+      "subject": "seasoning",
+      "voice": "weary",
+      "text": "오늘은... 좀 덜 짜도 좋겠어요."
+    },
+    {
+      "line_id": "line_feedback_high_seasoning_haughty_01",
+      "situation": "feedback_high",
+      "subject": "seasoning",
+      "voice": "haughty",
+      "text": "간은 한 걸음만 물리도록 해요."
+    },
+    {
+      "line_id": "line_feedback_low_heat_gruff_01",
+      "situation": "feedback_low",
+      "subject": "heat",
+      "voice": "gruff",
+      "text": "다음엔 불맛 좀 더 내."
+    },
+    {
+      "line_id": "line_feedback_low_heat_polite_01",
+      "situation": "feedback_low",
+      "subject": "heat",
+      "voice": "polite",
+      "text": "다음에는 겉을 조금 더 익혀 주시겠어요?"
+    },
+    {
+      "line_id": "line_feedback_low_heat_cheerful_01",
+      "situation": "feedback_low",
+      "subject": "heat",
+      "voice": "cheerful",
+      "text": "오, 다음엔 가장자리가 바삭하면 딱 좋겠어요!"
+    },
+    {
+      "line_id": "line_feedback_low_heat_weary_01",
+      "situation": "feedback_low",
+      "subject": "heat",
+      "voice": "weary",
+      "text": "조금만 더 센 불에 했으면… 좋았을 텐데요."
+    },
+    {
+      "line_id": "line_feedback_low_heat_haughty_01",
+      "situation": "feedback_low",
+      "subject": "heat",
+      "voice": "haughty",
+      "text": "이 정도면 얌전하군요. 불을 더 올리세요."
+    },
+    {
+      "line_id": "line_feedback_low_cook_time_gruff_01",
+      "situation": "feedback_low",
+      "subject": "cook_time",
+      "voice": "gruff",
+      "text": "다음엔 좀 더 푹 익혀."
+    },
+    {
+      "line_id": "line_feedback_low_cook_time_polite_01",
+      "situation": "feedback_low",
+      "subject": "cook_time",
+      "voice": "polite",
+      "text": "다음에는 부드럽게 더 익혀 주실 수 있을까요?"
+    },
+    {
+      "line_id": "line_feedback_low_cook_time_cheerful_01",
+      "situation": "feedback_low",
+      "subject": "cook_time",
+      "voice": "cheerful",
+      "text": "오, 다음엔 푹 익힌 걸로 부탁할게요!"
+    },
+    {
+      "line_id": "line_feedback_low_cook_time_weary_01",
+      "situation": "feedback_low",
+      "subject": "cook_time",
+      "voice": "weary",
+      "text": "조금만 더 푹 익었으면 좋겠어요."
+    },
+    {
+      "line_id": "line_feedback_low_cook_time_haughty_01",
+      "situation": "feedback_low",
+      "subject": "cook_time",
+      "voice": "haughty",
+      "text": "이 정도보다 훨씬 부드러워야지요."
+    },
+    {
+      "line_id": "line_feedback_low_seasoning_gruff_01",
+      "situation": "feedback_low",
+      "subject": "seasoning",
+      "voice": "gruff",
+      "text": "간이 좀 약해. 다음엔 더 넣어."
+    },
+    {
+      "line_id": "line_feedback_low_seasoning_polite_01",
+      "situation": "feedback_low",
+      "subject": "seasoning",
+      "voice": "polite",
+      "text": "제 입엔 간이 조금 싱거웠습니다."
+    },
+    {
+      "line_id": "line_feedback_low_seasoning_cheerful_01",
+      "situation": "feedback_low",
+      "subject": "seasoning",
+      "voice": "cheerful",
+      "text": "오, 여기다 간 한 꼬집만 더면 딱이겠어요!"
+    },
+    {
+      "line_id": "line_feedback_low_seasoning_weary_01",
+      "situation": "feedback_low",
+      "subject": "seasoning",
+      "voice": "weary",
+      "text": "오늘은 땀을 많이 흘려서… 간이 더 있었으면."
+    },
+    {
+      "line_id": "line_feedback_low_seasoning_haughty_01",
+      "situation": "feedback_low",
+      "subject": "seasoning",
+      "voice": "haughty",
+      "text": "재료는 괜찮군. 다만 간은 더 선명해야 해."
+    },
+    {
+      "line_id": "line_reaction_high_gruff_01",
+      "situation": "reaction_high",
+      "subject": null,
+      "voice": "gruff",
+      "text": "그래. 이 정도면 됐어."
+    },
+    {
+      "line_id": "line_reaction_high_polite_01",
+      "situation": "reaction_high",
+      "subject": null,
+      "voice": "polite",
+      "text": "오늘은 마음까지 든든해졌습니다."
+    },
+    {
+      "line_id": "line_reaction_high_cheerful_01",
+      "situation": "reaction_high",
+      "subject": null,
+      "voice": "cheerful",
+      "text": "이야, 오늘 운이 참 좋았네요!"
+    },
+    {
+      "line_id": "line_reaction_high_weary_01",
+      "situation": "reaction_high",
+      "subject": null,
+      "voice": "weary",
+      "text": "아… 이제야 좀 살 것 같네."
+    },
+    {
+      "line_id": "line_reaction_high_haughty_01",
+      "situation": "reaction_high",
+      "subject": null,
+      "voice": "haughty",
+      "text": "흠, 제법 사람 보는 눈이 있군요."
+    },
+    {
+      "line_id": "line_reaction_low_gruff_01",
+      "situation": "reaction_low",
+      "subject": null,
+      "voice": "gruff",
+      "text": "오늘은 이걸로 때우지. 다음엔 다르게."
+    },
+    {
+      "line_id": "line_reaction_low_polite_01",
+      "situation": "reaction_low",
+      "subject": null,
+      "voice": "polite",
+      "text": "제 속과는 조금 달랐네요. 다음엔 부탁드릴게요."
+    },
+    {
+      "line_id": "line_reaction_low_cheerful_01",
+      "situation": "reaction_low",
+      "subject": null,
+      "voice": "cheerful",
+      "text": "어라, 오늘은 입맛이 딴 데 갔나 봐요!"
+    },
+    {
+      "line_id": "line_reaction_low_weary_01",
+      "situation": "reaction_low",
+      "subject": null,
+      "voice": "weary",
+      "text": "나쁘진 않은데… 지금은 좀 다른 게 그리웠어요."
+    },
+    {
+      "line_id": "line_reaction_low_haughty_01",
+      "situation": "reaction_low",
+      "subject": null,
+      "voice": "haughty",
+      "text": "제 취향은 아니군요. 다음 선택은 기대해 보죠."
+    },
+    {
+      "line_id": "line_leave_gruff_01",
+      "situation": "leave",
+      "subject": null,
+      "voice": "gruff",
+      "text": "잘 먹었다. 이제 순찰 간다."
+    },
+    {
+      "line_id": "line_leave_polite_01",
+      "situation": "leave",
+      "subject": null,
+      "voice": "polite",
+      "text": "든든히 먹었습니다. 고맙습니다."
+    },
+    {
+      "line_id": "line_leave_cheerful_01",
+      "situation": "leave",
+      "subject": null,
+      "voice": "cheerful",
+      "text": "배터지겠다! 내일 또 올게요!"
+    },
+    {
+      "line_id": "line_leave_weary_01",
+      "situation": "leave",
+      "subject": null,
+      "voice": "weary",
+      "text": "살 것 같네… 잘 먹었어."
+    },
+    {
+      "line_id": "line_leave_haughty_01",
+      "situation": "leave",
+      "subject": null,
+      "voice": "haughty",
+      "text": "오늘은 제법 만족스러웠다."
     }
   ]
 }
