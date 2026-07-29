@@ -5,10 +5,23 @@
 """
 
 from collections.abc import Sequence
+from typing import NamedTuple
 
 from pydantic import BaseModel
 
 from daily_special.application.port.llm import Tier
+
+
+class FakeCall(NamedTuple):
+    """호출 하나의 기록.
+
+    context까지 남기는 이유는 재생성 피드백이 그리로 가기 때문이다. instruction만
+    기록하면 "무엇이 틀렸는지 모델에게 실제로 전달했는가"를 검사할 방법이 없다.
+    """
+
+    instruction: str
+    context: str
+    tier: Tier
 
 
 class FakeLlm:
@@ -20,8 +33,8 @@ class FakeLlm:
 
     def __init__(self, responses: Sequence[BaseModel]) -> None:
         self._pending = list(responses)
-        self.calls: list[tuple[str, Tier]] = []
-        """호출 기록 (instruction, tier). 테스트가 "어느 티어로 몇 번 불렀나"를 검사한다."""
+        self.calls: list[FakeCall] = []
+        """호출 기록. 테스트가 "어느 티어로 몇 번, 무엇을 실어 불렀나"를 검사한다."""
 
     async def generate[T: BaseModel](
         self,
@@ -31,7 +44,7 @@ class FakeLlm:
         schema: type[T],
         tier: Tier,
     ) -> T:
-        self.calls.append((instruction, tier))
+        self.calls.append(FakeCall(instruction, context, tier))
 
         if not self._pending:
             raise AssertionError(

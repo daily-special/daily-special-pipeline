@@ -33,6 +33,13 @@ def _bible() -> ProjectBible:
             "axes": [axis("heat", "불 세기"), axis("seasoning", "간")],
             "dietary_constraints": [named("no_meat")],
             "voices": [named("gruff")],
+            "generation": {
+                "max_ideal_span_ratio": 0.5,
+                "min_preferred_axes": 1,
+                "min_preferred_needs": 1,
+                "max_preferred_needs": 1,
+                "min_text_length": 1,
+            },
             "scoring": {
                 "need_floor": 0.15,
                 "axis_tolerance": 25,

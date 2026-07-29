@@ -46,12 +46,26 @@ def _test_bible() -> ProjectBible:
                     "description": "약불~센불",
                     "slider_min": 0,
                     "slider_max": 100,
-                }
+                },
+                {
+                    "key": "seasoning",
+                    "label": "간",
+                    "description": "심심함~짭짤함",
+                    "slider_min": 0,
+                    "slider_max": 100,
+                },
             ],
             "dietary_constraints": [
                 {"key": "no_meat", "label": "육류 불가", "description": "고기를 안 먹는다"}
             ],
             "voices": [{"key": "gruff", "label": "무뚝뚝", "description": "말이 짧다"}],
+            "generation": {
+                "max_ideal_span_ratio": 0.5,
+                "min_preferred_axes": 1,
+                "min_preferred_needs": 1,
+                "max_preferred_needs": 2,
+                "min_text_length": 1,
+            },
             "scoring": {
                 "need_floor": 0.15,
                 "axis_tolerance": 25,
@@ -178,7 +192,19 @@ def test_valid_guest_has_no_issues() -> None:
 
 def test_axis_without_preference_is_allowed() -> None:
     """취향이 없는 축은 넣지 않는다. 빠진 것이 아니라 '어떤 값이든 만족'이다."""
-    assert check_guest(_guest(ideal_ranges={}), _test_bible()) == []
+    guest = _guest(ideal_ranges={"heat": {"low": 40, "high": 60}})
+    assert check_guest(guest, _test_bible()) == []
+
+
+def test_guest_with_no_preference_at_all_is_an_error() -> None:
+    """축 하나를 비우는 것과 전부 비우는 것은 다르다.
+
+    취향이 하나도 없으면 플레이어가 추측할 것이 없다. 취향 추론이 이 게임의 핵심
+    루프라 그런 손님은 문법적으로 완벽해도 손님 구실을 못 한다.
+    """
+    issues = check_guest(_guest(ideal_ranges={}), _test_bible())
+    assert has_errors(issues)
+    assert issues[0].field == "ideal_ranges"
 
 
 @pytest.mark.parametrize(
@@ -208,6 +234,38 @@ def test_ideal_range_outside_the_slider_is_an_error() -> None:
     issues = check_guest(_guest(ideal_ranges={"heat": {"low": 90, "high": 120}}), _test_bible())
     assert has_errors(issues)
     assert issues[0].field == "ideal_ranges.heat"
+
+
+def test_ideal_range_wider_than_the_limit_is_an_error() -> None:
+    """무엇을 내도 맞는 구간은 취향이 아니다.
+
+    어휘도 슬라이더도 통과했는데 플레이할 수 없는 손님이 여기서 걸린다.
+    """
+    issues = check_guest(_guest(ideal_ranges={"heat": {"low": 0, "high": 90}}), _test_bible())
+    assert has_errors(issues)
+    assert issues[0].field == "ideal_ranges.heat"
+    assert "취향" in issues[0].message
+
+
+def test_too_many_preferred_needs_is_only_a_warning() -> None:
+    """쓸 수는 있다. ERROR로 두면 밋밋하다는 이유로 돈을 들여 다시 만들게 된다."""
+    issues = check_guest(_guest(preferred_needs=["filling", "mild", "filling"]), _test_bible())
+    assert not has_errors(issues)
+    assert issues[0].severity is Severity.WARNING
+
+
+def test_no_preferred_needs_is_an_error() -> None:
+    """서버가 오늘의 욕구를 뽑을 근거가 없다."""
+    issues = check_guest(_guest(preferred_needs=[]), _test_bible())
+    assert has_errors(issues)
+    assert issues[0].field == "preferred_needs"
+
+
+def test_empty_text_is_an_error() -> None:
+    """화면에 띄울 것도, 대사를 만들 재료도 없다."""
+    issues = check_guest(_guest(bio="   "), _test_bible())
+    assert has_errors(issues)
+    assert issues[0].field == "bio"
 
 
 def test_issues_are_collected_not_raised_on_first() -> None:

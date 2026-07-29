@@ -1,15 +1,22 @@
 """손님 페르소나 생성.
 
-생성 → 되접기 → 검증까지 한다. **재생성은 하지 않는다** — 그것은 6단계의 일이고,
-여기서는 Issue를 붙여 그대로 돌려준다. 두 층을 한 함수에 넣으면 LLM 호출 횟수를
-추적할 수 없게 된다 (규약 5-3).
+생성 → 검증 → 재생성까지 한다. 규칙을 어긴 손님만 골라 모자란 만큼 다시 부르고,
+피드백으로 무엇이 틀렸는지 실어 보낸다.
+
+**소진해도 생성물을 버리지 않는다** (규약 5-3). 3회를 다 써도 고쳐지지 않은 손님은
+Issue를 붙인 채 함께 나간다 — 여기서 예외를 올리면 같은 배치의 멀쩡한 손님까지 잃는다.
 """
 
 from pydantic import BaseModel, ConfigDict
 
 from daily_special.application.port.llm import LlmPort, Tier
 from daily_special.application.prompt import build_guest_context, build_guest_instruction
+from daily_special.application.regenerate import (
+    MAX_REGENERATIONS,
+    partition_by_errors,
+)
 from daily_special.application.schema_builder import build_guest_batch_schema
+from daily_special.common.errors import DomainError
 from daily_special.domain.bible import ProjectBible
 from daily_special.domain.guest import Guest, check_guest_batch
 from daily_special.domain.issue import Issue, Severity
@@ -28,34 +35,57 @@ class GuestGeneration(BaseModel):
     issues: list[Issue]
     """필드 경로가 `items[i].voice` 꼴이라 어느 손님의 문제인지 자리로 가리킨다."""
 
+    call_count: int
+    """LLM을 몇 번 불렀는가. 오프라인 배치라 이 값이 곧 비용이다.
+
+    재생성이 실제로 몇 번 돌았는지는 이 값에서만 보인다. 로그가 없으면 루프가
+    조용히 세 번씩 도는 것을 아무도 모른다.
+    """
+
 
 async def generate_guests(
     *,
     llm: LlmPort,
     bible: ProjectBible,
     count: int,
+    max_regenerations: int = MAX_REGENERATIONS,
 ) -> GuestGeneration:
-    """손님 count명을 한 번의 호출로 만든다.
+    """손님 count명을 만든다. 규칙을 어긴 손님은 그 인원만 다시 뽑는다.
 
-    1인 1호출이 아니라 배치인 이유는 품질이다. 한 응답 안에 여러 명이 있으면 모델이
-    서로 겹치지 않게 만든다. 한 명씩 부르면 매번 백지에서 시작해 비슷한 사람이 쌓인다.
-    중복 회피는 규칙으로 잡을 수 없는 문제라 여기서 공짜로 얻는 편이 낫다.
+    첫 호출은 배치로 간다 — 한 응답 안에 여러 명이 있으면 모델이 서로 겹치지 않게
+    만든다. 한 명씩 부르면 매번 백지에서 시작해 비슷한 사람이 쌓인다.
     """
     schema = build_guest_batch_schema(bible)
-    context = build_guest_context(bible, count)
 
-    response = await llm.generate(
-        instruction=build_guest_instruction(),
-        context=context,
-        schema=schema.model,
-        tier=Tier.QUALITY,
-    )
+    async def call(needed: int, kept: list[Guest], feedback: list[Issue]) -> list[Guest]:
+        response = await llm.generate(
+            instruction=build_guest_instruction(),
+            context=build_guest_context(bible, needed, existing=kept, issues=feedback),
+            schema=schema.model,
+            tier=Tier.QUALITY,
+        )
+        return schema.to_guests(response)
 
-    guests = schema.to_guests(response)
+    if max_regenerations < 0:
+        raise DomainError(f"max_regenerations는 0 이상이어야 한다: {max_regenerations}")
+
+    guests = await call(count, [], [])
+    calls = 1
+
+    for _ in range(max_regenerations):
+        partition = partition_by_errors(guests, bible)
+        if not partition.rejected:
+            break
+
+        replacements = await call(len(partition.rejected), partition.kept, partition.issues)
+        calls += 1
+        guests = [*partition.kept, *replacements]
+
+    # 루프를 소진해도 guests는 그대로 들고 나간다. 고쳐지지 않은 손님도 버리지 않는다.
     issues = check_guest_batch(guests, bible)
     issues += _check_count(guests, count)
 
-    return GuestGeneration(guests=guests, issues=issues)
+    return GuestGeneration(guests=guests, issues=issues, call_count=calls)
 
 
 def _check_count(guests: list[Guest], requested: int) -> list[Issue]:

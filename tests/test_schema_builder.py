@@ -39,6 +39,13 @@ def _bible_data(**overrides: Any) -> dict[str, Any]:
         "axes": [axis("heat"), axis("seasoning")],
         "dietary_constraints": [named("no_meat")],
         "voices": [named("gruff"), named("polite")],
+        "generation": {
+            "max_ideal_span_ratio": 0.5,
+            "min_preferred_axes": 1,
+            "min_preferred_needs": 1,
+            "max_preferred_needs": 2,
+            "min_text_length": 1,
+        },
         "scoring": {
             "need_floor": 0.15,
             "axis_tolerance": 25,

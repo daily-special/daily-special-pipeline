@@ -33,6 +33,13 @@ def _minimal_data() -> dict[str, Any]:
         ],
         "dietary_constraints": [],
         "voices": [{"key": "gruff", "label": "무뚝뚝", "description": "말이 짧다"}],
+        "generation": {
+            "max_ideal_span_ratio": 0.5,
+            "min_preferred_axes": 1,
+            "min_preferred_needs": 1,
+            "max_preferred_needs": 1,
+            "min_text_length": 1,
+        },
         "scoring": {
             "need_floor": 0.15,
             "axis_tolerance": 25,
@@ -167,6 +174,48 @@ def test_zero_axis_tolerance_is_rejected() -> None:
     data = _minimal_data()
     data["scoring"]["axis_tolerance"] = 0
     with pytest.raises(ConfigError, match="axis_tolerance"):
+        ProjectBible.model_validate(data)
+
+
+# ---------------------------------------------------------------- 합격선
+
+
+def test_zero_min_preferred_axes_is_rejected() -> None:
+    """0이면 취향 없는 손님이 통과한다. 추측할 것이 없으면 손님 구실을 못 한다."""
+    data = _minimal_data()
+    data["generation"]["min_preferred_axes"] = 0
+    with pytest.raises(ConfigError, match="min_preferred_axes"):
+        ProjectBible.model_validate(data)
+
+
+def test_min_preferred_axes_above_axis_count_is_rejected() -> None:
+    """축 개수를 넘으면 어떤 손님도 통과할 수 없다 — 루프가 영원히 재생성만 한다."""
+    data = _minimal_data()
+    data["generation"]["min_preferred_axes"] = 2
+    with pytest.raises(ConfigError, match="min_preferred_axes"):
+        ProjectBible.model_validate(data)
+
+
+def test_max_preferred_needs_above_vocabulary_is_rejected() -> None:
+    data = _minimal_data()
+    data["generation"]["max_preferred_needs"] = 5
+    with pytest.raises(ConfigError, match="max_preferred_needs"):
+        ProjectBible.model_validate(data)
+
+
+def test_inverted_preferred_needs_bounds_are_rejected() -> None:
+    data = _minimal_data()
+    data["generation"]["min_preferred_needs"] = 1
+    data["generation"]["max_preferred_needs"] = 0
+    with pytest.raises(ConfigError, match="max_preferred_needs"):
+        ProjectBible.model_validate(data)
+
+
+def test_ideal_span_ratio_above_one_is_rejected() -> None:
+    """1을 넘으면 슬라이더보다 넓은 구간을 허용한다는 뜻인데, 그것은 다른 검사가 이미 막는다."""
+    data = _minimal_data()
+    data["generation"]["max_ideal_span_ratio"] = 1.5
+    with pytest.raises(ConfigError, match="max_ideal_span_ratio"):
         ProjectBible.model_validate(data)
 
 

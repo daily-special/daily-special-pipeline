@@ -89,8 +89,15 @@ def check_guest(guest: Guest, bible: ProjectBible) -> list[Issue]:
     설정이 틀린 것은 ConfigError로 즉시 멈추지만, 생성물이 틀린 것은 재생성으로 고친다.
     첫 위반에서 멈추면 재생성 피드백에 한 줄밖에 싣지 못한다.
 
-    여기서 보는 것은 **어휘 적합성과 구조적 범위**뿐이다. "이상 구간이 슬라이더 폭의
-    절반이라 취향이라 부를 수 없다" 같은 품질 판정은 6단계 검증 층의 몫이다.
+    보는 것은 두 갈래다.
+
+    - **어휘 적합성과 구조적 범위** — 없는 말투를 쓰지 않았는가, 슬라이더 밖을 가리키지
+      않는가. 이쪽은 틀리면 게임이 잘못 돈다
+    - **합격선** — 이것을 손님이라 부를 수 있는가. 문법적으로 완벽하면서 쓸모없는
+      생성물이 있다. 취향이 하나도 없는 손님, 슬라이더 전체를 이상 구간으로 가진 손님
+
+    ERROR와 WARNING을 가르는 기준은 **그대로 쓰면 게임이 잘못 도는가**다. ERROR만
+    재생성을 부르고, 재생성은 돈을 쓴다 (규약 5-4).
     """
     issues: list[Issue] = []
 
@@ -98,6 +105,7 @@ def check_guest(guest: Guest, bible: ProjectBible) -> list[Issue]:
     issues += _check_voice(guest, bible)
     issues += _check_vocabulary(guest, bible)
     issues += _check_ideal_ranges(guest, bible)
+    issues += _check_substance(guest, bible)
 
     return issues
 
@@ -233,6 +241,86 @@ def _check_ideal_ranges(guest: Guest, bible: ProjectBible) -> list[Issue]:
                         f"이상 구간 {ideal.low}~{ideal.high}이 축 '{key}'의 슬라이더 범위 "
                         f"{axis.slider_min}~{axis.slider_max}를 벗어난다. "
                         "플레이어가 낼 수 없는 값이라 영원히 맞출 수 없다"
+                    ),
+                )
+            )
+            continue
+
+        slider_span = axis.slider_max - axis.slider_min
+        max_span = slider_span * bible.generation.max_ideal_span_ratio
+        if ideal.high - ideal.low > max_span:
+            issues.append(
+                Issue(
+                    severity=Severity.ERROR,
+                    field=f"ideal_ranges.{key}",
+                    message=(
+                        f"이상 구간 {ideal.low}~{ideal.high}의 폭이 축 '{key}'의 슬라이더 "
+                        f"{slider_span} 중 {int(max_span)}을 넘는다. 이렇게 넓으면 "
+                        "무엇을 내도 맞아서 취향이라고 할 수 없다. 좁게 잡거나, "
+                        "이 축에 취향이 없다면 아예 비운다"
+                    ),
+                )
+            )
+
+    return issues
+
+
+def _check_substance(guest: Guest, bible: ProjectBible) -> list[Issue]:
+    """문법적으로 완벽하면서 쓸모없는 생성물을 잡는다.
+
+    스키마도 어휘도 통과했는데 플레이할 수 없는 손님이 있다 — 취향이 하나도 없어
+    추측할 것이 없거나, bio가 한 단어라 화면에 띄울 것이 없는 경우다.
+    """
+    spec = bible.generation
+    issues: list[Issue] = []
+
+    if len(guest.ideal_ranges) < spec.min_preferred_axes:
+        issues.append(
+            Issue(
+                severity=Severity.ERROR,
+                field="ideal_ranges",
+                message=(
+                    f"취향이 있는 축이 {len(guest.ideal_ranges)}개다. 최소 "
+                    f"{spec.min_preferred_axes}개는 있어야 한다 — 하나도 없으면 "
+                    "플레이어가 추측할 것이 없어 손님 구실을 못 한다"
+                ),
+            )
+        )
+
+    count = len(guest.preferred_needs)
+    if count < spec.min_preferred_needs:
+        issues.append(
+            Issue(
+                severity=Severity.ERROR,
+                field="preferred_needs",
+                message=(
+                    f"평소 욕구가 {count}개다. 최소 {spec.min_preferred_needs}개는 "
+                    "있어야 오늘 무엇을 원할지 정할 수 있다"
+                ),
+            )
+        )
+    elif count > spec.max_preferred_needs:
+        issues.append(
+            Issue(
+                severity=Severity.WARNING,
+                field="preferred_needs",
+                message=(
+                    f"평소 욕구가 {count}개다. {spec.max_preferred_needs}개 이하가 좋다 — "
+                    "많으면 아무 요리에나 만족해 밋밋해진다"
+                ),
+            )
+        )
+
+    for field, text in (("bio", guest.bio), ("personality", guest.personality)):
+        if len(text.strip()) < spec.min_text_length:
+            issues.append(
+                Issue(
+                    severity=Severity.ERROR,
+                    field=field,
+                    message=(
+                        f"{field}가 너무 짧다({len(text.strip())}자). "
+                        f"{spec.min_text_length}자 이상으로 쓴다 — 짧으면 화면에 띄울 것도 "
+                        "대사를 만들 재료도 없다"
                     ),
                 )
             )

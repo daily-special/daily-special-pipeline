@@ -122,6 +122,47 @@ class ScoringSpec(BaseModel):
     """식이 제약 위반 하나당 곱하는 계수. 위반이 둘이면 두 번 곱한다."""
 
 
+class GenerationSpec(BaseModel):
+    """생성물의 합격선. ScoringSpec과 섞지 않는다.
+
+    저쪽은 **만들어진 뒤** 만족도를 계산하는 계수고, 이쪽은 **만들어질 때** 이것을
+    손님이라 부를 수 있는지 가르는 선이다. 한 블록에 두면 밸런스를 만지다가
+    합격선이 따라 움직인다.
+
+    여기 값들은 소비자가 둘이다 — `check_guest`가 판정에 쓰고, 프롬프트가 모델에게
+    미리 알리는 데 쓴다. 그래서 코드가 아니라 설정이 소유한다 (규약 3절).
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    max_ideal_span_ratio: float
+    """이상 구간의 폭이 슬라이더 전체의 몇 배까지 허용되는가.
+
+    **프롬프트가 권하는 폭과 다른 것이다.** 프롬프트는 axis_tolerance를 기준으로
+    "이 정도로 좁게 잡아라"라고 권하고, 이 값은 "이보다 넓으면 취향이 아니다"라는
+    실패선이다. 권고와 실패선이 같으면 조금 넘친 것까지 돈을 들여 다시 만들게 된다.
+    """
+
+    min_preferred_axes: int
+    """취향이 있는 축이 최소 몇 개여야 하는가.
+
+    하나도 없으면 플레이어가 추측할 것이 없다. 취향 추론이 이 게임의 핵심 루프라
+    그런 손님은 손님 구실을 못 한다.
+    """
+
+    min_preferred_needs: int
+    """평소 욕구가 최소 몇 개. 0개면 서버가 오늘의 욕구를 뽑을 근거가 없다."""
+
+    max_preferred_needs: int
+    """평소 욕구가 이보다 많으면 아무 요리에나 만족해 밋밋해진다. 넘어도 쓸 수는 있다."""
+
+    min_text_length: int
+    """bio·personality의 최소 길이.
+
+    너무 짧으면 화면에 띄울 것도, 대사를 만들 재료도 없다.
+    """
+
+
 class Unconfirmed(BaseModel):
     """확정되지 않은 게임 수치. 가정값을 쓴다면 그 사실이 여기 남아야 한다.
 
@@ -151,6 +192,7 @@ class ProjectBible(BaseModel):
     dietary_constraints: list[DietarySpec]
     voices: list[VoiceSpec]
     scoring: ScoringSpec
+    generation: GenerationSpec
     unconfirmed: list[Unconfirmed] = []
 
     def find_need(self, key: str) -> NeedSpec | None:
@@ -195,6 +237,7 @@ class ProjectBible(BaseModel):
                 )
 
         self._check_scoring()
+        self._check_generation()
         return self
 
     def _check_scoring(self) -> None:
@@ -221,6 +264,40 @@ class ProjectBible(BaseModel):
                 f"axis_tolerance는 0보다 커야 한다: {scoring.axis_tolerance}. "
                 "0이면 이상 구간을 1만큼만 벗어나도 그 축이 0이 된다"
             )
+
+    def _check_generation(self) -> None:
+        """합격선이 어휘보다 크면 어떤 생성물도 통과할 수 없다. 여기서 막는다."""
+        generation = self.generation
+
+        if not 0.0 < generation.max_ideal_span_ratio <= 1.0:
+            raise ConfigError(
+                f"max_ideal_span_ratio는 0 초과 1 이하여야 한다: "
+                f"{generation.max_ideal_span_ratio}. 1을 넘으면 슬라이더보다 넓은 구간을 "
+                "허용하는 뜻이 되는데, 그것은 이미 다른 검사가 막는다"
+            )
+        if not 1 <= generation.min_preferred_axes <= len(self.axes):
+            raise ConfigError(
+                f"min_preferred_axes는 1 이상 축 개수({len(self.axes)}) 이하여야 한다: "
+                f"{generation.min_preferred_axes}. 0이면 취향 없는 손님이 통과하고, "
+                "축 개수를 넘으면 어떤 손님도 통과할 수 없다"
+            )
+        if generation.min_preferred_needs < 1:
+            raise ConfigError(
+                f"min_preferred_needs는 1 이상이어야 한다: {generation.min_preferred_needs}. "
+                "0이면 서버가 오늘의 욕구를 뽑을 근거가 없는 손님이 통과한다"
+            )
+        if generation.max_preferred_needs < generation.min_preferred_needs:
+            raise ConfigError(
+                f"max_preferred_needs가 min보다 작다: "
+                f"{generation.max_preferred_needs} < {generation.min_preferred_needs}"
+            )
+        if generation.max_preferred_needs > len(self.needs):
+            raise ConfigError(
+                f"max_preferred_needs가 욕구 개수({len(self.needs)})를 넘는다: "
+                f"{generation.max_preferred_needs}"
+            )
+        if generation.min_text_length < 1:
+            raise ConfigError(f"min_text_length는 1 이상이어야 한다: {generation.min_text_length}")
 
 
 def _require_unique_slugs(field: str, keys: Sequence[str]) -> None:
