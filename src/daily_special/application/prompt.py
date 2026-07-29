@@ -12,6 +12,7 @@ from collections.abc import Sequence
 
 from daily_special.common.errors import DomainError
 from daily_special.domain.bible import ProjectBible
+from daily_special.domain.dish import Dish, IngredientMap
 from daily_special.domain.guest import Guest
 from daily_special.domain.ingredient import Ingredient
 from daily_special.domain.issue import Issue
@@ -139,7 +140,7 @@ def build_ingredient_context(
     return "\n\n".join(parts)
 
 
-_REVIEW_RULES = """\
+_GUEST_REVIEW_RULES = """\
 찾을 것은 둘뿐이다.
 
 1. **겹침(overlap)** — 두 손님이 사실상 같은 캐릭터인가. 이름과 ID가 달라도 겹칠 수 있다.
@@ -157,16 +158,16 @@ _REVIEW_RULES = """\
 """
 
 
-def build_review_instruction() -> str:
+def build_guest_review_instruction() -> str:
     """검토자의 역할. 요청마다 바뀌지 않는다."""
     return (
         "너는 게임 캐릭터 설정을 검수하는 편집자다. "
         "아래 손님들이 한 식당의 손님 명단으로 쓸 만한지 본다.\n\n"
-        f"{_WORLD}\n\n{_REVIEW_RULES}"
+        f"{_WORLD}\n\n{_GUEST_REVIEW_RULES}"
     )
 
 
-def build_review_context(guests: Sequence[Guest]) -> str:
+def build_guest_review_context(guests: Sequence[Guest]) -> str:
     """검토 대상. 판정에 필요한 것만 싣는다.
 
     한 명씩이 아니라 전부 한 번에 싣는 이유는 주 목적이 "서로 비슷한가"이기 때문이다.
@@ -175,11 +176,11 @@ def build_review_context(guests: Sequence[Guest]) -> str:
     if not guests:
         raise DomainError("검토할 손님이 없다")
 
-    listed = "\n\n".join(_review_entry(guest) for guest in guests)
+    listed = "\n\n".join(_guest_review_entry(guest) for guest in guests)
     return f"손님 {len(guests)}명이다.\n\n{listed}"
 
 
-def _review_entry(guest: Guest) -> str:
+def _guest_review_entry(guest: Guest) -> str:
     ranges = ", ".join(
         f"{key} {ideal.low}~{ideal.high}" for key, ideal in sorted(guest.ideal_ranges.items())
     )
@@ -217,3 +218,112 @@ def _feedback_section(issues: Sequence[Issue]) -> str:
     """
     listed = "\n".join(sorted({f"- {issue.message}" for issue in issues}))
     return f"지난번 시도가 아래를 어겼다. 같은 실수를 반복하지 않는다.\n{listed}"
+
+
+_DISH_RULES = """\
+지켜야 할 것:
+
+1. **주어진 재료만 쓴다.** 목록에 없는 재료를 요구하는 요리는 영원히 만들 수 없다
+2. **팔아서 남아야 한다.** 재료 원가를 더한 값보다 가격이 높아야 한다.
+   구내식당이라 폭리는 없지만 손해를 보면 식당이 굴러가지 않는다
+3. **답하는 욕구를 좁게 잡는다.** 욕구를 다 붙이면 누구에게나 만점이라
+   무엇을 낼지 고르는 행위가 사라진다. 이 게임의 절반이 그 선택이다
+4. **보존 재료만으로 되는 요리가 섞여 있어야 한다.** 그것만 상시 메뉴에 걸 수 있다.
+   신선 재료가 들어간 요리는 그날 장을 봐야만 낼 수 있는 오늘의 메뉴가 된다
+5. **서로 겹치지 않게 만든다.** 재료가 비슷하고 답하는 욕구가 같으면 같은 요리다
+6. 모든 글은 한국어로 쓴다. 백반집 차림표에 있을 법한 이름으로 짓는다\
+"""
+
+
+def build_dish_instruction() -> str:
+    """요리 생성기의 역할과 규칙."""
+    return (
+        "너는 게임의 차림표를 짓는 작가다. "
+        "아래 세계관의 식당이 낼 요리들을 만든다.\n\n"
+        f"{_WORLD}\n\n{_DISH_RULES}"
+    )
+
+
+def build_dish_context(
+    bible: ProjectBible,
+    count: int,
+    ingredients: Sequence[Ingredient],
+    *,
+    existing: Sequence[Dish] = (),
+    issues: Sequence[Issue] = (),
+) -> str:
+    """요리는 바깥을 참조하므로 재료 목록이 컨텍스트에 실린다.
+
+    스키마로는 "실재하는 재료만"을 강제할 수 없다 — ID가 런타임에 정해지는 값이라
+    enum으로 굳힐 수 없기 때문이다. 그래서 목록을 본문에 싣고 검증이 뒤를 받친다.
+    """
+    if count < 1:
+        raise DomainError(f"요리 수는 1 이상이어야 한다: {count}")
+    if not ingredients:
+        raise DomainError("재료가 없으면 요리를 만들 수 없다")
+
+    listed = "\n".join(
+        f"- {item.ingredient_id} · {item.name} ({item.kind}, {item.base_price}) — "
+        f"{item.description}"
+        for item in ingredients
+    )
+    parts = [
+        f"요리 {count}개를 만들어라.",
+        f"쓸 수 있는 재료는 다음이 전부다.\n{listed}",
+    ]
+
+    if existing:
+        already = "\n".join(f"- {dish.name}, ID {dish.dish_id}" for dish in existing)
+        parts.append("차림표에는 이미 다음 요리가 있다. **이들과 겹치지 않게** 만든다.\n" + already)
+    if issues:
+        parts.append(_feedback_section(issues))
+
+    parts.append(
+        "보존 재료만으로 되는 요리가 하나 이상 들어갔는지, 각 요리가 원가보다 비싼지 확인하고 내라."
+    )
+    return "\n\n".join(parts)
+
+
+_DISH_REVIEW_RULES = """\
+찾을 것은 둘뿐이다.
+
+1. **겹침(overlap)** — 두 요리가 사실상 같은 요리인가. 이름이 달라도 재료가 비슷하고
+   답하는 욕구가 같으면 플레이어에게는 한 접시다.
+2. **어긋남(incoherent)** — 설명과 수치가 앞뒤로 맞지 않는가. 든든한 한 그릇이라면서
+   답하는 욕구에 포만이 없거나, 값싼 백반이라면서 가장 비싼 값이 붙어 있으면 틀린 것이다.
+
+**문제가 없으면 빈 배열로 낸다. 억지로 찾지 않는다.** 지적이 매번 나오면 아무도 읽지 않게 되고,
+그 순간 이 검토는 값어치를 잃는다.
+
+다음은 지적하지 않는다.
+- 재료가 실재하는지, 값이 범위 안인지 — 그쪽은 이미 코드가 검사했다
+- 소박한 요리라는 것 — 구내식당의 백반이지 궁정 연회가 아니다\
+"""
+
+
+def build_dish_review_instruction() -> str:
+    return (
+        "너는 게임의 차림표를 검수하는 편집자다. "
+        "아래 요리들이 한 식당의 차림표로 쓸 만한지 본다.\n\n"
+        f"{_WORLD}\n\n{_DISH_REVIEW_RULES}"
+    )
+
+
+def build_dish_review_context(dishes: Sequence[Dish], ingredients: IngredientMap) -> str:
+    if not dishes:
+        raise DomainError("검토할 요리가 없다")
+
+    listed = "\n\n".join(_dish_review_entry(dish, ingredients) for dish in dishes)
+    return f"요리 {len(dishes)}개다.\n\n{listed}"
+
+
+def _dish_review_entry(dish: Dish, ingredients: IngredientMap) -> str:
+    used = ", ".join(
+        ingredients[key].name if key in ingredients else key for key in dish.ingredient_ids
+    )
+    return (
+        f"[{dish.dish_id}] {dish.name} — {dish.base_price} (원가 {dish.cost(ingredients)})\n"
+        f"  설명: {dish.description}\n"
+        f"  답하는 욕구: {', '.join(dish.need_tags)}\n"
+        f"  재료: {used}"
+    )

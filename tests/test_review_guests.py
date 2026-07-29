@@ -10,12 +10,8 @@ import pytest
 
 from daily_special.adapter.outbound.llm.fake import FakeLlm
 from daily_special.application.port.llm import Tier
-from daily_special.application.review_guests import (
-    ReviewFinding,
-    ReviewResponse,
-    Verdict,
-    review_guests,
-)
+from daily_special.application.review import ReviewFinding, ReviewResponse, Verdict
+from daily_special.application.review_guests import review_guests
 from daily_special.common.errors import LlmError
 from daily_special.domain.bible import ProjectBible
 from daily_special.domain.guest import Guest
@@ -56,6 +52,9 @@ def _bible() -> ProjectBible:
                 "min_preferred_needs": 1,
                 "max_preferred_needs": 2,
                 "min_text_length": 1,
+                "max_dish_need_tags": 1,
+                "min_dish_ingredients": 2,
+                "max_dish_ingredients": 4,
             },
             "scoring": {
                 "need_floor": 0.15,
@@ -90,7 +89,7 @@ def _pair() -> list[Guest]:
 def _finding(**overrides: Any) -> ReviewFinding:
     data: dict[str, Any] = {
         "verdict": Verdict.OVERLAP,
-        "guest_ids": ["guest_a_01", "guest_b_01"],
+        "subject_ids": ["guest_a_01", "guest_b_01"],
         "reason": "둘 다 무뚝뚝한 정찰병이다.",
         "suggestion": "한쪽을 다른 직업으로 바꾼다.",
     }
@@ -212,7 +211,7 @@ async def test_issue_carries_verdict_reason_and_suggestion() -> None:
 
 
 async def test_issue_points_at_the_first_named_guest() -> None:
-    llm = FakeLlm([ReviewResponse(findings=[_finding(guest_ids=["guest_b_01"])])])
+    llm = FakeLlm([ReviewResponse(findings=[_finding(subject_ids=["guest_b_01"])])])
 
     result = await review_guests(llm=llm, bible=_bible(), guests=_pair())
 
@@ -224,7 +223,7 @@ async def test_finding_about_an_unknown_guest_still_survives() -> None:
 
     그렇다고 버리지는 않는다 — 검토가 헛것을 봤다는 사실 자체가 신호다.
     """
-    llm = FakeLlm([ReviewResponse(findings=[_finding(guest_ids=["guest_ghost_99"])])])
+    llm = FakeLlm([ReviewResponse(findings=[_finding(subject_ids=["guest_ghost_99"])])])
 
     result = await review_guests(llm=llm, bible=_bible(), guests=_pair())
 
@@ -260,8 +259,8 @@ async def test_review_failure_is_not_retried_here() -> None:
 
 def test_review_context_requires_guests() -> None:
     """빈 목록으로 프롬프트를 만드는 것은 호출 측의 잘못이다."""
-    from daily_special.application.prompt import build_review_context
+    from daily_special.application.prompt import build_guest_review_context
     from daily_special.common.errors import DomainError
 
     with pytest.raises(DomainError, match="검토할 손님이 없다"):
-        build_review_context([])
+        build_guest_review_context([])

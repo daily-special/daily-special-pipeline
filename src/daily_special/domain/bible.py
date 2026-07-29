@@ -162,6 +162,23 @@ class GenerationSpec(BaseModel):
     너무 짧으면 화면에 띄울 것도, 대사를 만들 재료도 없다.
     """
 
+    max_dish_need_tags: int
+    """요리 하나가 답할 수 있는 욕구의 최대 개수.
+
+    욕구를 전부 붙이면 누구에게나 만점이라 요리를 고르는 행위가 사라진다.
+    이 게임의 절반이 "무엇을 낼까"인데 그것이 없어진다.
+    """
+
+    min_dish_ingredients: int
+    """재료가 이보다 적으면 조합이라고 할 수 없다."""
+
+    max_dish_ingredients: int
+    """재료가 이보다 많으면 오늘 산 것으로 만들 수 없다.
+
+    재료 제약이 정답 암기를 막는 장치인데, 요구 재료가 많을수록 그날 만들 수 있는
+    요리가 사라져 차선 찾기가 아니라 막다른 길이 된다.
+    """
+
 
 class EconomySpec(BaseModel):
     """화폐 스케일. 세 범위의 **관계**가 이 블록의 내용이다.
@@ -329,6 +346,22 @@ class ProjectBible(BaseModel):
             )
         if generation.min_text_length < 1:
             raise ConfigError(f"min_text_length는 1 이상이어야 한다: {generation.min_text_length}")
+        if not 1 <= generation.max_dish_need_tags <= len(self.needs):
+            raise ConfigError(
+                f"max_dish_need_tags는 1 이상 욕구 개수({len(self.needs)}) 이하여야 한다: "
+                f"{generation.max_dish_need_tags}. 0이면 어떤 요리도 통과할 수 없고, "
+                "욕구를 전부 허용하면 누구에게나 만점인 요리가 나온다"
+            )
+        if generation.min_dish_ingredients < 1:
+            raise ConfigError(
+                f"min_dish_ingredients는 1 이상이어야 한다: "
+                f"{generation.min_dish_ingredients}. 재료 없는 요리는 만들 수 없다"
+            )
+        if generation.max_dish_ingredients < generation.min_dish_ingredients:
+            raise ConfigError(
+                f"max_dish_ingredients가 min보다 작다: "
+                f"{generation.max_dish_ingredients} < {generation.min_dish_ingredients}"
+            )
 
     def _check_economy(self) -> None:
         """세 범위의 관계를 지킨다. 따로 정해지면 요리가 재료 원가와 무관해진다."""
