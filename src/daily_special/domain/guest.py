@@ -10,6 +10,8 @@
 """
 
 import re
+from collections import Counter
+from collections.abc import Sequence
 
 from pydantic import BaseModel, ConfigDict
 
@@ -96,6 +98,39 @@ def check_guest(guest: Guest, bible: ProjectBible) -> list[Issue]:
     issues += _check_voice(guest, bible)
     issues += _check_vocabulary(guest, bible)
     issues += _check_ideal_ranges(guest, bible)
+
+    return issues
+
+
+def check_guest_batch(guests: Sequence[Guest], bible: ProjectBible) -> list[Issue]:
+    """한 번에 생성된 손님들을 통째로 본다.
+
+    개별 검증만으로는 잡히지 않는 것이 하나 있다 — **ID 중복**이다. 계약은 ID가
+    유일하고 발행 후 불변이기를 요구하는데(2절), 한 명씩 보면 그것을 볼 수 없다.
+
+    필드 경로에 `items[i].`를 앞에 붙인다. guest_id가 유효하지 않을 수도 있어서
+    ID가 아니라 자리로 가리킨다.
+    """
+    issues: list[Issue] = []
+
+    for index, guest in enumerate(guests):
+        issues += [
+            issue.model_copy(update={"field": f"items[{index}].{issue.field}"})
+            for issue in check_guest(guest, bible)
+        ]
+
+    counts = Counter(guest.guest_id for guest in guests)
+    for index, guest in enumerate(guests):
+        if counts[guest.guest_id] > 1:
+            issues.append(
+                Issue(
+                    severity=Severity.ERROR,
+                    field=f"items[{index}].guest_id",
+                    message=(
+                        f"ID '{guest.guest_id}'가 이 배치 안에서 겹친다. 손님마다 다른 ID를 쓴다"
+                    ),
+                )
+            )
 
     return issues
 
