@@ -32,6 +32,14 @@ def _bible() -> ProjectBible:
             "axes": [axis("heat"), axis("seasoning")],
             "dietary_constraints": [named("no_meat")],
             "voices": [named("gruff")],
+            "situations": [
+                {
+                    "key": "greet",
+                    "label": "인사",
+                    "description": "들어올 때",
+                    "subject": "none",
+                },
+            ],
             "economy": {
                 "wallet_min": 8,
                 "wallet_max": 40,
@@ -49,6 +57,7 @@ def _bible() -> ProjectBible:
                 "max_dish_need_tags": 1,
                 "min_dish_ingredients": 2,
                 "max_dish_ingredients": 4,
+                "max_line_length": 40,
             },
             "scoring": {
                 "need_floor": 0.15,
