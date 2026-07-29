@@ -86,6 +86,59 @@ def build_guest_context(
     return "\n\n".join(parts)
 
 
+_REVIEW_RULES = """\
+찾을 것은 둘뿐이다.
+
+1. **겹침(overlap)** — 두 손님이 사실상 같은 캐릭터인가. 이름과 ID가 달라도 겹칠 수 있다.
+   직업이 비슷하고 말투가 같고 원하는 것이 같으면 플레이어에게는 한 사람이다.
+2. **어긋남(incoherent)** — 사연과 수치가 앞뒤로 맞지 않는가. "불맛을 즐긴다"고 써놓고
+   불 세기 구간이 낮은 쪽에 있으면 틀린 것이다.
+
+**문제가 없으면 빈 배열로 낸다. 억지로 찾지 않는다.** 지적이 매번 나오면 아무도 읽지 않게 되고,
+그 순간 이 검토는 값어치를 잃는다.
+
+다음은 지적하지 않는다.
+- 문법·표기·어휘 — 그쪽은 이미 코드가 검사했다
+- 취향이 비어 있는 축 — 의도된 것이다. 어떤 값이든 만족한다는 뜻이다
+- 평범한 사람이라는 것 — 대부분은 평범해야 특별한 손님이 특별해 보인다\
+"""
+
+
+def build_review_instruction() -> str:
+    """검토자의 역할. 요청마다 바뀌지 않는다."""
+    return (
+        "너는 게임 캐릭터 설정을 검수하는 편집자다. "
+        "아래 손님들이 한 식당의 손님 명단으로 쓸 만한지 본다.\n\n"
+        f"{_WORLD}\n\n{_REVIEW_RULES}"
+    )
+
+
+def build_review_context(guests: Sequence[Guest]) -> str:
+    """검토 대상. 판정에 필요한 것만 싣는다.
+
+    한 명씩이 아니라 전부 한 번에 싣는 이유는 주 목적이 "서로 비슷한가"이기 때문이다.
+    비교 대상이 같은 컨텍스트에 없으면 그 판정 자체가 불가능하다.
+    """
+    if not guests:
+        raise DomainError("검토할 손님이 없다")
+
+    listed = "\n\n".join(_review_entry(guest) for guest in guests)
+    return f"손님 {len(guests)}명이다.\n\n{listed}"
+
+
+def _review_entry(guest: Guest) -> str:
+    ranges = ", ".join(
+        f"{key} {ideal.low}~{ideal.high}" for key, ideal in sorted(guest.ideal_ranges.items())
+    )
+    return (
+        f"[{guest.guest_id}] {guest.name} — {guest.title} (말투 {guest.voice})\n"
+        f"  소개: {guest.bio}\n"
+        f"  성격: {guest.personality}\n"
+        f"  욕구: {', '.join(guest.preferred_needs)}\n"
+        f"  취향: {ranges or '없음'}"
+    )
+
+
 def _avoid_section(existing: Sequence[Guest]) -> str:
     """이미 확정된 손님들.
 
