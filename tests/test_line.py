@@ -23,7 +23,7 @@ from daily_special.domain.package import SCHEMA_VERSION, Package, PackageKind
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BIBLE_PATH = REPO_ROOT / "data" / "project_bible.json"
-LINES_PATH = REPO_ROOT / "out" / "packages" / SCHEMA_VERSION / "lines.json"
+LINES_PATH = REPO_ROOT / "out" / "mock" / "lines.json"
 
 
 def _load() -> Package[DialogueLine]:

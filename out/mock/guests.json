@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0.0",
+  "bible_version": "2026-07-30.3",
+  "kind": "guests",
+  "generated_at": "2026-07-27T00:00:00Z",
+  "run_id": "run_handwritten_mock_01",
+
+  "items": [
+    {
+      "guest_id": "guest_ashen_scout_01",
+      "name": "레하",
+      "title": "잿빛 정찰병",
+      "bio": "북쪽 능선을 훑고 돌아오는 장거리 정찰병. 사흘에 한 번 내려와 말없이 한 그릇을 비우고 간다.",
+      "voice": "gruff",
+      "personality": "칭찬을 아끼지만 맛있으면 그릇을 끝까지 비운다. 불평은 한 단어로 끝내고, 대신 다음에 또 온다.",
+      "preferred_needs": ["filling", "restorative"],
+      "ideal_ranges": {
+        "heat": { "low": 60, "high": 80 },
+        "cook_time": { "low": 50, "high": 70 },
+        "seasoning": { "low": 55, "high": 75 }
+      },
+      "dietary": []
+    },
+    {
+      "guest_id": "guest_lantern_priest_01",
+      "name": "미르베",
+      "title": "등불 사제",
+      "bio": "부상자를 돌보다 늦은 시각에야 내려온다. 계율을 지키느라 먹을 수 있는 것이 많지 않다.",
+      "voice": "polite",
+      "personality": "불만도 에둘러 말해서 무엇이 잘못됐는지 알아채기 어렵다. 대신 맞으면 오래 기억하고 고마워한다.",
+      "preferred_needs": ["mild", "restorative"],
+      "ideal_ranges": {
+        "heat": { "low": 15, "high": 35 },
+        "seasoning": { "low": 20, "high": 40 }
+      },
+      "dietary": ["no_meat", "no_alcohol"]
+    },
+    {
+      "guest_id": "guest_ember_brawler_01",
+      "name": "도르그",
+      "title": "잉걸 주먹잡이",
+      "bio": "투기장을 돌며 상금을 버는 격투가. 뭘 먹든 개의치 않지만 미지근한 것만은 못 견딘다.",
+      "voice": "cheerful",
+      "personality": "감탄이 크고 말이 많다. 마음에 들면 주변 자리까지 떠들어 소문을 낸다.",
+      "preferred_needs": ["stimulating", "filling"],
+      "ideal_ranges": {
+        "heat": { "low": 80, "high": 100 }
+      },
+      "dietary": []
+    },
+    {
+      "guest_id": "guest_ledger_porter_01",
+      "name": "핀",
+      "title": "장부지기 짐꾼",
+      "bio": "길드 창고의 물목을 세고 짐을 나른다. 품삯이 박해 늘 값부터 본다.",
+      "voice": "weary",
+      "personality": "기대가 낮아 웬만하면 군말 없이 먹는다. 그래서 작은 정성에도 눈에 띄게 놀란다.",
+      "preferred_needs": ["affordable", "filling"],
+      "ideal_ranges": {
+        "cook_time": { "low": 55, "high": 80 },
+        "seasoning": { "low": 45, "high": 65 }
+      },
+      "dietary": ["no_spicy"]
+    }
+  ]
+}

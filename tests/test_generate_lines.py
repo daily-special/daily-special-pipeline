@@ -80,9 +80,8 @@ def _response(bible: ProjectBible, *, bad: bool = False) -> Any:
         _COUNTER["n"] += 1
         items.append(
             {
-                "line_id": ("bad-id" if bad else f"line_x_{_COUNTER['n']:03d}"),
                 "voice": voice.key,
-                "text": f"대사 {_COUNTER['n']}",
+                "text": ("가" * 60 if bad else f"대사 {_COUNTER['n']}"),
             }
         )
     return model.model_validate({"lines": items})
@@ -109,6 +108,22 @@ async def test_slot_plan_expands_the_subject_vocabulary() -> None:
     assert (("greet", None)) in [(s.key, subj) for s, subj in slots]
     assert ("order", "filling") in [(s.key, subj) for s, subj in slots]
     assert ("order", "mild") in [(s.key, subj) for s, subj in slots]
+
+
+async def test_ids_never_collide_across_slots() -> None:
+    """ID를 모델에게 물으면 자리마다 겹친다.
+
+    한 호출은 다른 자리를 모르므로 `order` 자리 여섯 곳이 전부 같은 ID를 낸다.
+    ID는 (상황·대상·말투)로 완전히 결정되는 값이라 애초에 물을 것이 아니다.
+    """
+    bible = _bible()
+    llm = FakeLlm([_response(bible) for _ in plan_slots(bible)])
+
+    result = await generate_lines(llm=llm, bible=bible)
+    ids = [line.line_id for line in result.lines]
+
+    assert len(set(ids)) == len(ids)
+    assert "line_order_filling_gruff_01" in ids
 
 
 async def test_situation_and_subject_are_filled_by_code() -> None:

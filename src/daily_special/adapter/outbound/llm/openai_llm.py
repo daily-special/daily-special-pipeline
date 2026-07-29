@@ -8,7 +8,10 @@ OpenAI 고유의 타입·예외·개념은 **이 파일 밖으로 나가지 않�
 """
 
 import asyncio
+import hashlib
+import time
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
 from openai import (
     APIConnectionError,
@@ -22,7 +25,9 @@ from openai import (
 from openai.types.shared.reasoning_effort import ReasoningEffort
 from pydantic import BaseModel
 
+from daily_special.adapter.outbound.provenance.recorder import NullRecorder
 from daily_special.application.port.llm import Tier
+from daily_special.application.port.provenance import CallOutcome, ProvenancePort
 from daily_special.common.errors import LlmError
 
 
@@ -71,6 +76,7 @@ class OpenAiLlm:
         max_attempts: int = 3,
         backoff_seconds: float = 1.0,
         max_output_tokens: int = _DEFAULT_MAX_OUTPUT_TOKENS,
+        provenance: ProvenancePort | None = None,
     ) -> None:
         if max_attempts < 1:
             raise LlmError(f"max_attempts는 1 이상이어야 한다: {max_attempts}")
@@ -79,6 +85,7 @@ class OpenAiLlm:
         self._max_attempts = max_attempts
         self._backoff_seconds = backoff_seconds
         self._max_output_tokens = max_output_tokens
+        self._provenance: ProvenancePort = provenance or NullRecorder()
         self.calls: list[tuple[str, Tier]] = []
         """호출 기록. 오프라인 배치라 몇 번 불렀는지가 곧 비용이다."""
 
@@ -93,16 +100,27 @@ class OpenAiLlm:
         spec = _TIER_MODELS[tier]
         self.calls.append((instruction, tier))
 
+        digest = hashlib.sha256(instruction.encode("utf-8")).hexdigest()[:16]
+        self._provenance.save_prompt(digest, instruction, context)
+
         last_error: Exception | None = None
         for attempt in range(self._max_attempts):
+            started = time.monotonic()
             try:
-                return await self._parse_once(
+                parsed, usage = await self._parse_once(
                     spec=spec, instruction=instruction, context=context, schema=schema
                 )
             except _RETRYABLE as error:
                 last_error = error
+                self._log(spec, tier, digest, schema, attempt + 1, "retry", started, (0, 0))
                 if attempt + 1 < self._max_attempts:
                     await asyncio.sleep(self._backoff_seconds * 2**attempt)
+            except LlmError:
+                self._log(spec, tier, digest, schema, attempt + 1, "failed", started, (0, 0))
+                raise
+            else:
+                self._log(spec, tier, digest, schema, attempt + 1, "ok", started, usage)
+                return parsed
 
         raise LlmError(
             f"{spec.model_id} 호출이 {self._max_attempts}회 모두 전송 단계에서 실패했다: "
@@ -116,7 +134,7 @@ class OpenAiLlm:
         instruction: str,
         context: str,
         schema: type[T],
-    ) -> T:
+    ) -> tuple[T, tuple[int, int]]:
         try:
             response = await self._client.responses.parse(
                 model=spec.model_id,
@@ -141,7 +159,37 @@ class OpenAiLlm:
             raise LlmError(
                 f"{spec.model_id}가 구조화 출력을 내지 않았다 (거부되었거나 응답이 비었다)"
             )
-        return parsed
+
+        usage = response.usage
+        tokens = (usage.input_tokens, usage.output_tokens) if usage is not None else (0, 0)
+        return parsed, tokens
+
+    def _log(
+        self,
+        spec: _ModelSpec,
+        tier: Tier,
+        digest: str,
+        schema: type[BaseModel],
+        attempt: int,
+        outcome: str,
+        started: float,
+        tokens: tuple[int, int],
+    ) -> None:
+        """호출 하나를 남긴다. 기록이 실패해도 생성은 계속된다."""
+        self._provenance.record(
+            CallOutcome(
+                ts=datetime.now(UTC),
+                tier=str(tier),
+                model_id=spec.model_id,
+                instruction_hash=digest,
+                schema_name=schema.__name__,
+                input_tokens=tokens[0],
+                output_tokens=tokens[1],
+                latency_ms=int((time.monotonic() - started) * 1000),
+                attempt=attempt,
+                outcome=outcome,
+            )
+        )
 
 
 def _build_client() -> AsyncOpenAI:
