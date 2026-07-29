@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "bible_version": "2026-07-30.1",
+  "bible_version": "2026-07-30.2",
   "kind": "guests",
   "generated_at": "2026-07-27T00:00:00Z",
   "run_id": "run_handwritten_mock_01",

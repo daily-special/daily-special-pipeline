@@ -47,6 +47,9 @@ def _minimal_data() -> dict[str, Any]:
             "min_preferred_needs": 1,
             "max_preferred_needs": 1,
             "min_text_length": 1,
+            "max_dish_need_tags": 1,
+            "min_dish_ingredients": 2,
+            "max_dish_ingredients": 4,
         },
         "scoring": {
             "need_floor": 0.15,

@@ -21,6 +21,7 @@ from pydantic import BaseModel, ConfigDict, Field, create_model
 
 from daily_special.common.errors import DomainError
 from daily_special.domain.bible import IngredientKind, ProjectBible
+from daily_special.domain.dish import Dish
 from daily_special.domain.guest import Guest
 from daily_special.domain.ingredient import Ingredient
 from daily_special.domain.satisfaction import IdealRange
@@ -358,4 +359,109 @@ def _axis_description(bible: ProjectBible, axis_key: str) -> str:
         "넓으면 취향이라고 할 수 없다. "
         "이 축에 취향이 없어 어떤 값이든 괜찮다면 null로 둔다. "
         "구간은 bio·personality와 앞뒤가 맞아야 한다."
+    )
+
+
+class DishBatchSchema(BatchSchema):
+    """요리 배치.
+
+    재료 ID는 enum이 되지 못한다 — 어휘가 아니라 **다른 생성물의 값**이라 런타임에
+    정해지기 때문이다. 그래서 실재 여부는 스키마가 아니라 프롬프트(재료 목록)와
+    검증(`check_dish`)이 함께 받친다. 스키마 층이 못 막는 첫 사례다.
+    """
+
+    def to_dishes(self, response: BaseModel) -> list[Dish]:
+        items = cast(list[BaseModel], _field(response, "dishes"))
+        return [self._to_dish(item) for item in items]
+
+    def _to_dish(self, item: BaseModel) -> Dish:
+        tags = cast(list[Any], _field(item, "need_tags"))
+        return Dish(
+            dish_id=cast(str, _field(item, "dish_id")),
+            name=cast(str, _field(item, "name")),
+            description=cast(str, _field(item, "description")),
+            need_tags=[str(tag) for tag in tags],
+            ingredient_ids=[str(key) for key in cast(list[Any], _field(item, "ingredient_ids"))],
+            base_price=cast(int, _field(item, "base_price")),
+        )
+
+
+def build_dish_batch_schema(bible: ProjectBible) -> DishBatchSchema:
+    """설정의 욕구 어휘와 가격 범위로 요리 스키마를 짓는다."""
+    cache_key = ("dishes", bible.model_dump_json())
+    cached = _CACHE.get(cache_key)
+    if isinstance(cached, DishBatchSchema):
+        return cached
+
+    need_enum = _string_enum("NeedKey", [need.key for need in bible.needs])
+    spec = bible.generation
+    economy = bible.economy
+
+    item_model = create_model(
+        "GeneratedDish",
+        __config__=ConfigDict(extra="forbid"),
+        dish_id=(
+            str,
+            Field(
+                description=(
+                    "요리 식별자. 'dish_'로 시작하고 소문자·숫자·밑줄만 쓴다 "
+                    "(예: dish_herb_porridge). 64자 이내."
+                )
+            ),
+        ),
+        name=(str, Field(description="한국어 이름. 백반집 차림표에 있을 법한 이름.")),
+        description=(
+            str,
+            Field(
+                description=(
+                    "어떤 요리인지 한두 문장. 플레이어에게 그대로 보인다. "
+                    f"{spec.min_text_length}자 이상."
+                )
+            ),
+        ),
+        need_tags=(
+            list[need_enum],  # type: ignore[valid-type]
+            Field(description=_dish_need_description(bible)),
+        ),
+        ingredient_ids=(
+            list[str],
+            Field(
+                description=(
+                    f"필요한 재료의 ID. {spec.min_dish_ingredients}~"
+                    f"{spec.max_dish_ingredients}개를 고른다. **본문에 준 목록에 있는 "
+                    "ID만 쓴다** — 없는 재료를 요구하는 요리는 영원히 만들 수 없다."
+                )
+            ),
+        ),
+        base_price=(
+            int,
+            Field(
+                description=(
+                    f"고정 판매가. {economy.dish_price_min}~{economy.dish_price_max} 사이의 "
+                    "정수이고, **쓴 재료들의 단가 합보다 커야 한다.** 팔수록 손해면 "
+                    "식당이 굴러가지 않는다."
+                )
+            ),
+        ),
+    )
+    batch_model = create_model(
+        "GeneratedDishBatch",
+        __config__=ConfigDict(extra="forbid"),
+        dishes=(
+            list[item_model],  # type: ignore[valid-type]
+            Field(description="요청받은 수만큼의 요리. 서로 겹치지 않게 만든다."),
+        ),
+    )
+
+    schema = DishBatchSchema(batch_model)
+    _CACHE[cache_key] = schema
+    return schema
+
+
+def _dish_need_description(bible: ProjectBible) -> str:
+    listed = " / ".join(f"{need.key}({need.label}): {need.description}" for need in bible.needs)
+    return (
+        f"이 요리가 답하는 욕구. 1~{bible.generation.max_dish_need_tags}개만 고른다 — "
+        "다 붙이면 누구에게나 만점이라 무엇을 낼지 고를 이유가 없어진다. "
+        f"목록: {listed}"
     )

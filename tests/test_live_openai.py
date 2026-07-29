@@ -16,10 +16,13 @@ import pytest
 
 from daily_special.adapter.outbound.config.loader import load_bible
 from daily_special.adapter.outbound.llm.openai_llm import OpenAiLlm
+from daily_special.application.generate_dishes import generate_dishes
 from daily_special.application.generate_guests import generate_guests
 from daily_special.application.generate_ingredients import generate_ingredients
+from daily_special.application.review_dishes import review_dishes
 from daily_special.application.review_guests import review_guests
 from daily_special.domain.guest import Guest
+from daily_special.domain.ingredient import Ingredient
 from daily_special.domain.issue import Severity, has_errors
 from daily_special.domain.package import SCHEMA_VERSION, Package
 
@@ -157,3 +160,40 @@ async def test_generates_real_ingredients() -> None:
 
     assert len(result.ingredients) == 6
     assert not has_errors(result.issues), "실제 생성물이 규칙을 어겼다"
+
+
+async def test_generates_and_reviews_real_dishes() -> None:
+    """요리는 바깥을 참조하는 첫 콘텐츠다.
+
+    목 재료를 주고 그것만으로 요리를 짜게 한 뒤, 일반화한 검토 계층을 요리에 붙여 본다.
+    """
+    bible = load_bible(BIBLE_PATH)
+    raw = json.loads((GUESTS_PATH.parent / "ingredients.json").read_text(encoding="utf-8"))
+    ingredients = Package[Ingredient].model_validate(raw).items
+
+    result = await generate_dishes(llm=OpenAiLlm(), bible=bible, ingredients=ingredients, count=4)
+    known = {item.ingredient_id: item for item in ingredients}
+
+    for dish in result.dishes:
+        used = ", ".join(known[key].name for key in dish.ingredient_ids if key in known)
+        standing = "상시 가능" if dish.is_standing_capable(known) else "오늘의 메뉴"
+        print(f"\n[{dish.dish_id}] {dish.name} — {dish.base_price} (원가 {dish.cost(known)})")
+        print(f"  {dish.description}")
+        print(f"  욕구: {', '.join(dish.need_tags)} / 재료: {used}")
+        print(f"  {standing} / 저촉: {', '.join(dish.dietary_conflicts(known)) or '없음'}")
+
+    for issue in result.issues:
+        print(f"  [{issue.severity}] {issue.field}: {issue.message}")
+
+    review = await review_dishes(
+        llm=OpenAiLlm(), bible=bible, dishes=result.dishes, ingredients=known
+    )
+    print(f"\n검토 호출 {review.call_count}회")
+    for issue in review.issues:
+        print(f"  [{issue.severity}] {issue.field}: {issue.message}")
+
+    print(f"\n생성 LLM 호출 {result.call_count}회")
+
+    assert len(result.dishes) == 4
+    assert not has_errors(result.issues), "실제 생성물이 규칙을 어겼다"
+    assert all(issue.severity is Severity.WARNING for issue in review.issues)
