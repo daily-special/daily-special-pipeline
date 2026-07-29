@@ -24,6 +24,7 @@ from daily_special.domain.bible import IngredientKind, ProjectBible
 from daily_special.domain.dish import Dish
 from daily_special.domain.guest import Guest
 from daily_special.domain.ingredient import Ingredient
+from daily_special.domain.line import DialogueLine as Line
 from daily_special.domain.satisfaction import IdealRange
 
 _AXIS_FIELD_PREFIX = "ideal_"
@@ -465,3 +466,77 @@ def _dish_need_description(bible: ProjectBible) -> str:
         "다 붙이면 누구에게나 만점이라 무엇을 낼지 고를 이유가 없어진다. "
         f"목록: {listed}"
     )
+
+
+class LineBatchSchema(BatchSchema):
+    """대사 배치.
+
+    한 번의 호출이 **하나의 (상황, 대상) 자리**를 맡고, 그 안에서 말투별로 한 줄씩
+    낸다. 말투를 응답 안에 함께 두는 이유는 그래야 모델이 같은 문장을 말투만 바꿔
+    쓰지 않고 서로 다르게 쓰기 때문이다 — 손님 배치와 같은 이유다.
+    """
+
+    def to_lines(self, response: BaseModel, situation: str, subject: str | None) -> list[Line]:
+        items = cast(list[BaseModel], _field(response, "lines"))
+        return [
+            Line(
+                line_id=cast(str, _field(item, "line_id")),
+                situation=situation,
+                subject=subject,
+                voice=str(_field(item, "voice")),
+                text=cast(str, _field(item, "text")),
+            )
+            for item in items
+        ]
+
+
+def build_line_batch_schema(bible: ProjectBible) -> LineBatchSchema:
+    """말투 어휘로 대사 스키마를 짓는다.
+
+    상황과 대상은 스키마에 없다. **호출하는 쪽이 이미 아는 값**이라 모델에게 물으면
+    틀릴 여지만 생긴다 — 되접을 때 코드가 채운다.
+    """
+    cache_key = ("lines", bible.model_dump_json())
+    cached = _CACHE.get(cache_key)
+    if isinstance(cached, LineBatchSchema):
+        return cached
+
+    voice_enum = _string_enum("VoiceKey", [voice.key for voice in bible.voices])
+    voices = " / ".join(f"{v.key}({v.label}): {v.description}" for v in bible.voices)
+
+    item_model = create_model(
+        "GeneratedLine",
+        __config__=ConfigDict(extra="forbid"),
+        line_id=(
+            str,
+            Field(
+                description=(
+                    "대사 식별자. 'line_'으로 시작하고 소문자·숫자·밑줄만 쓴다 "
+                    "(예: line_greet_gruff_01). 64자 이내."
+                )
+            ),
+        ),
+        voice=(voice_enum, Field(description=f"이 대사의 말투 — {voices}")),
+        text=(
+            str,
+            Field(
+                description=(
+                    "손님이 하는 말. 한국어 한 문장이고 "
+                    f"{bible.generation.max_line_length}자 이하다. "
+                    "따옴표나 지시문 없이 대사만 쓴다."
+                )
+            ),
+        ),
+    )
+    batch_model = create_model(
+        "GeneratedLineBatch",
+        __config__=ConfigDict(extra="forbid"),
+        lines=(
+            list[item_model],  # type: ignore[valid-type]
+            Field(description="말투마다 한 줄씩. 같은 문장을 말투만 바꿔 쓰지 않는다."),
+        ),
+    )
+
+    schema = LineBatchSchema(batch_model)
+    _CACHE[cache_key] = schema
+    return schema

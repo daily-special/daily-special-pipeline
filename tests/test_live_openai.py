@@ -19,6 +19,7 @@ from daily_special.adapter.outbound.llm.openai_llm import OpenAiLlm
 from daily_special.application.generate_dishes import generate_dishes
 from daily_special.application.generate_guests import generate_guests
 from daily_special.application.generate_ingredients import generate_ingredients
+from daily_special.application.generate_lines import generate_lines, plan_slots
 from daily_special.application.review_dishes import review_dishes
 from daily_special.application.review_guests import review_guests
 from daily_special.domain.guest import Guest
@@ -197,3 +198,34 @@ async def test_generates_and_reviews_real_dishes() -> None:
     assert len(result.dishes) == 4
     assert not has_errors(result.issues), "실제 생성물이 규칙을 어겼다"
     assert all(issue.severity is Severity.WARNING for issue in review.issues)
+
+
+async def test_generates_real_lines() -> None:
+    """대사는 자리가 80개라 전부 뽑으면 비싸다. 대표 세 자리만 본다.
+
+    보려는 것은 셋이다 — 말투가 실제로 갈리는가, 주문 대사가 욕구를 직접 이름 대지
+    않고 흘리는가, 피드백 대사가 어느 쪽으로 고치라는지 드러내는가. 뒤의 둘이
+    정보 공개 곡선의 전부다.
+    """
+    bible = load_bible(BIBLE_PATH)
+    wanted = {("greet", None), ("order", "restorative"), ("feedback_high", "seasoning")}
+    slots = [slot for slot in plan_slots(bible) if (slot[0].key, slot[1]) in wanted]
+
+    result = await generate_lines(llm=OpenAiLlm(), bible=bible, slots=slots)
+
+    for situation, subject in wanted:
+        picked = [
+            line for line in result.lines if line.situation == situation and line.subject == subject
+        ]
+        print(f"\n=== {situation} / {subject or '-'} ===")
+        for line in sorted(picked, key=lambda item: item.voice):
+            print(f"  {line.voice:9} {line.text}")
+
+    for issue in result.issues:
+        print(f"  [{issue.severity}] {issue.field}: {issue.message}")
+
+    print(f"\nLLM 호출 {result.call_count}회 (자리 {len(slots)}개)")
+
+    assert result.call_count >= len(slots)
+    assert len(result.lines) == len(slots) * len(bible.voices)
+    assert not has_errors(result.issues), "실제 생성물이 규칙을 어겼다"

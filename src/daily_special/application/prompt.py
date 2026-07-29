@@ -11,7 +11,7 @@
 from collections.abc import Sequence
 
 from daily_special.common.errors import DomainError
-from daily_special.domain.bible import ProjectBible
+from daily_special.domain.bible import ProjectBible, SituationSpec, SubjectKind
 from daily_special.domain.dish import Dish, IngredientMap
 from daily_special.domain.guest import Guest
 from daily_special.domain.ingredient import Ingredient
@@ -327,3 +327,77 @@ def _dish_review_entry(dish: Dish, ingredients: IngredientMap) -> str:
         f"  답하는 욕구: {', '.join(dish.need_tags)}\n"
         f"  재료: {used}"
     )
+
+
+_LINE_RULES = """\
+지켜야 할 것:
+
+1. **말투가 뚜렷하게 갈려야 한다.** 같은 문장을 어미만 바꿔 쓰면 말투를 나눈 의미가 없다.
+   무엇을 말하는지, 얼마나 말하는지가 말투마다 달라야 한다
+2. **짧게.** 손님 한마디가 화면을 덮으면 게임이 멈춘 것처럼 보인다
+3. **요리를 지목하지 않는다.** 손님은 무엇을 원하는지 흘릴 뿐이고, 무엇을 낼지는
+   플레이어가 정한다. "국밥 주세요"가 아니라 "속이 좀 허해서"다
+4. **화내지 않는다.** 코지 게임이라 악의가 없다. 아쉬울 때도 다음을 기약한다
+5. 한국어로 쓴다. 따옴표나 지시문 없이 대사만 쓴다\
+"""
+
+
+def build_line_instruction() -> str:
+    """대사 생성기의 역할과 규칙."""
+    return (
+        "너는 게임의 대사를 쓰는 작가다. "
+        "식당 손님이 하는 짧은 한마디들을 만든다.\n\n"
+        f"{_WORLD}\n\n{_LINE_RULES}"
+    )
+
+
+def build_line_context(
+    bible: ProjectBible,
+    situation: SituationSpec,
+    subject: str | None,
+    *,
+    issues: Sequence[Issue] = (),
+) -> str:
+    """한 번의 호출이 맡는 것은 **하나의 (상황, 대상) 자리**다.
+
+    상황과 대상을 응답에 물어보지 않고 여기서 못박는 이유는, 부르는 쪽이 이미 아는
+    값이라 모델에게 맡기면 틀릴 여지만 생기기 때문이다.
+    """
+    parts = [
+        f"상황: {situation.label} — {situation.description}",
+    ]
+
+    if subject is not None:
+        parts.append(_subject_section(bible, situation.subject, subject))
+
+    parts.append(
+        f"말투 {len(bible.voices)}종 각각에 대해 한 줄씩, "
+        f"모두 {len(bible.voices)}줄을 쓴다. 같은 상황·같은 대상이지만 "
+        "말투에 따라 완전히 다른 말이 나와야 한다."
+    )
+
+    if issues:
+        parts.append(_feedback_section(issues))
+
+    return "\n\n".join(parts)
+
+
+def _subject_section(bible: ProjectBible, kind: SubjectKind, subject: str) -> str:
+    """대상이 무엇인지 풀어 준다. 키만 주면 모델이 뜻을 모른다."""
+    if kind is SubjectKind.NEED:
+        need = bible.find_need(subject)
+        if need is not None:
+            return (
+                f"손님이 원하는 것: {need.label} — {need.description}\n"
+                "**이것을 직접 이름 대지 않는다.** 몸 상태나 사정으로 흘려서, "
+                "플레이어가 알아채게 한다."
+            )
+    if kind is SubjectKind.AXIS:
+        axis = bible.find_axis(subject)
+        if axis is not None:
+            return (
+                f"어긋난 축: {axis.label} — {axis.description}\n"
+                "**다음에 어느 쪽으로 고치면 되는지가 드러나야 한다.** "
+                "그것이 이 대사의 유일한 쓸모다."
+            )
+    return f"대상: {subject}"

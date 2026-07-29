@@ -75,7 +75,7 @@ class DietarySpec(BaseModel):
 
 
 class VoiceSpec(BaseModel):
-    """말투 하나. 대사 풀이 (상황 × 말투)로 짜이므로 이 키가 조인 키다.
+    """말투 하나. 대사 풀이 (상황 × 대상 × 말투)로 짜이므로 이 키가 조인 키다.
 
     말투를 자유 텍스트로 두면 런타임이 대사를 고를 수 없다. 손님의 뉘앙스는
     페르소나의 personality 문장이 따로 나른다 — 조인은 키가, 결은 문장이 맡는다.
@@ -87,6 +87,41 @@ class VoiceSpec(BaseModel):
     label: str
     description: str
     """이 말투가 어떻게 말하는지. 대사 생성 프롬프트에 그대로 실린다."""
+
+
+class SubjectKind(StrEnum):
+    """대사의 대상이 어느 어휘에서 오는가."""
+
+    NONE = "none"
+    """대상이 없다. 인사·퇴장처럼 무엇을 가리키지 않는 대사다."""
+
+    NEED = "need"
+    """욕구. "속이 쓰려요"가 어느 욕구를 말하는지."""
+
+    AXIS = "axis"
+    """파라미터 축. "좀 짠데요"가 어느 축을 말하는지."""
+
+
+class SituationSpec(BaseModel):
+    """대사가 나오는 상황 하나.
+
+    대사 풀은 **상황 × 대상 × 말투**로 짜인다. 상황과 말투만으로는 "속이 쓰려요"와
+    "좀 짠데요"를 만들 수 없다 — 어느 욕구인지, 어느 축인지가 대사를 정한다.
+    정보 공개 곡선이 그 두 대사 위에 얹혀 있다 (design.md 5장).
+
+    상황 어휘를 `주문_회복`처럼 미리 펼치지 않는다. 그러면 욕구 어휘가 이 목록에
+    복제되어, 욕구를 하나 늘릴 때 상황도 함께 늘려야 한다.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    key: str
+    label: str
+    description: str
+    """언제 나오는 대사인지. 생성 프롬프트에 그대로 실린다."""
+
+    subject: SubjectKind
+    """이 상황의 대사가 무엇을 가리키는가. 대상 값은 여기 적힌 어휘에서 온다."""
 
 
 class ScoringSpec(BaseModel):
@@ -179,6 +214,13 @@ class GenerationSpec(BaseModel):
     요리가 사라져 차선 찾기가 아니라 막다른 길이 된다.
     """
 
+    max_line_length: int
+    """대사 한 줄의 최대 길이.
+
+    손님 한마디가 화면을 덮으면 게임이 멈춘 것처럼 보인다. 코지 게임의 호흡은
+    짧은 한마디에서 나온다.
+    """
+
 
 class EconomySpec(BaseModel):
     """화폐 스케일. 세 범위의 **관계**가 이 블록의 내용이다.
@@ -237,6 +279,7 @@ class ProjectBible(BaseModel):
     axes: list[AxisSpec]
     dietary_constraints: list[DietarySpec]
     voices: list[VoiceSpec]
+    situations: list[SituationSpec]
     scoring: ScoringSpec
     generation: GenerationSpec
     economy: EconomySpec
@@ -255,6 +298,9 @@ class ProjectBible(BaseModel):
     def find_voice(self, key: str) -> VoiceSpec | None:
         return next((voice for voice in self.voices if voice.key == key), None)
 
+    def find_situation(self, key: str) -> SituationSpec | None:
+        return next((item for item in self.situations if item.key == key), None)
+
     @model_validator(mode="after")
     def _check_invariants(self) -> "ProjectBible":
         if not self.version.strip():
@@ -266,6 +312,7 @@ class ProjectBible(BaseModel):
             "dietary_constraints", [item.key for item in self.dietary_constraints]
         )
         _require_unique_slugs("voices", [voice.key for voice in self.voices])
+        _require_unique_slugs("situations", [item.key for item in self.situations])
 
         if not self.needs:
             raise ConfigError("needs가 비어 있다. 욕구가 없으면 손님이 무엇도 원할 수 없다")
@@ -275,6 +322,8 @@ class ProjectBible(BaseModel):
             raise ConfigError(
                 "voices가 비어 있다. 말투가 없으면 손님이 유효한 voice를 가질 수 없다"
             )
+        if not self.situations:
+            raise ConfigError("situations가 비어 있다. 상황이 없으면 대사가 나올 자리가 없다")
 
         for axis in self.axes:
             if axis.slider_min >= axis.slider_max:
@@ -357,6 +406,8 @@ class ProjectBible(BaseModel):
                 f"min_dish_ingredients는 1 이상이어야 한다: "
                 f"{generation.min_dish_ingredients}. 재료 없는 요리는 만들 수 없다"
             )
+        if generation.max_line_length < 1:
+            raise ConfigError(f"max_line_length는 1 이상이어야 한다: {generation.max_line_length}")
         if generation.max_dish_ingredients < generation.min_dish_ingredients:
             raise ConfigError(
                 f"max_dish_ingredients가 min보다 작다: "

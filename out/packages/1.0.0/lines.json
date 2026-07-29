@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "bible_version": "2026-07-30.3",
+  "kind": "lines",
+  "generated_at": "2026-07-30T00:00:00Z",
+  "run_id": "run_handwritten_mock_01",
+  "items": [
+    {
+      "line_id": "line_greet_gruff_01",
+      "situation": "greet",
+      "subject": null,
+      "voice": "gruff",
+      "text": "왔다."
+    },
+    {
+      "line_id": "line_greet_polite_01",
+      "situation": "greet",
+      "subject": null,
+      "voice": "polite",
+      "text": "안녕하세요, 자리 있을까요?"
+    },
+    {
+      "line_id": "line_greet_cheerful_01",
+      "situation": "greet",
+      "subject": null,
+      "voice": "cheerful",
+      "text": "우와, 오늘도 냄새 좋다!"
+    },
+    {
+      "line_id": "line_greet_weary_01",
+      "situation": "greet",
+      "subject": null,
+      "voice": "weary",
+      "text": "……아, 이제야 앉네."
+    },
+    {
+      "line_id": "line_greet_haughty_01",
+      "situation": "greet",
+      "subject": null,
+      "voice": "haughty",
+      "text": "여기가 요즘 말 나오는 곳인가."
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-30.2",
+  "version": "2026-07-30.3",
 
   "needs": [
     {
@@ -109,6 +109,51 @@
     }
   ],
 
+  "situations": [
+    {
+      "key": "greet",
+      "label": "인사",
+      "description": "손님이 식당에 들어와 자리를 잡을 때. 아직 아무것도 주문하지 않았다",
+      "subject": "none"
+    },
+    {
+      "key": "order",
+      "label": "주문",
+      "description": "오늘 무엇을 원하는지 말한다. 요리를 지목하지 않고 욕구를 흘린다 — 플레이어는 이 말만 듣고 무엇을 낼지 정해야 한다",
+      "subject": "need"
+    },
+    {
+      "key": "feedback_high",
+      "label": "피드백(과함)",
+      "description": "낸 요리의 어떤 축이 이 손님 취향보다 높았을 때. 다음에 낮추라는 힌트가 되어야 한다",
+      "subject": "axis"
+    },
+    {
+      "key": "feedback_low",
+      "label": "피드백(모자람)",
+      "description": "낸 요리의 어떤 축이 이 손님 취향보다 낮았을 때. 다음에 올리라는 힌트가 되어야 한다",
+      "subject": "axis"
+    },
+    {
+      "key": "reaction_high",
+      "label": "만족",
+      "description": "낸 요리가 잘 맞았을 때의 반응. 무엇이 좋았는지는 짚지 않고 기분만 드러낸다",
+      "subject": "none"
+    },
+    {
+      "key": "reaction_low",
+      "label": "아쉬움",
+      "description": "낸 요리가 어긋났을 때의 반응. 코지 게임이라 화내지 않는다. 아쉬워하되 다음을 기약한다",
+      "subject": "none"
+    },
+    {
+      "key": "leave",
+      "label": "퇴장",
+      "description": "다 먹고 자리를 뜰 때. 짧게 인사하고 나간다",
+      "subject": "none"
+    }
+  ],
+
   "scoring": {
     "need_floor": 0.15,
     "axis_tolerance": 25,
@@ -133,7 +178,8 @@
     "min_text_length": 20,
     "max_dish_need_tags": 3,
     "min_dish_ingredients": 2,
-    "max_dish_ingredients": 4
+    "max_dish_ingredients": 4,
+    "max_line_length": 40
   },
 
   "unconfirmed": [
@@ -149,18 +195,23 @@
     },
     {
       "key": "generation.*",
-      "assumed": "max_ideal_span_ratio 0.5 · min_preferred_axes 1 · min_preferred_needs 1 · max_preferred_needs 2 · min_text_length 20 · max_dish_need_tags 3 · min_dish_ingredients 2 · max_dish_ingredients 4",
-      "why": "생성물의 합격선인데 근거가 될 생성 데이터가 아직 적다. 이 값들은 재생성을 트리거해 돈을 쓰므로 느슨하게 시작한다 — 잘못된 컷은 멀쩡한 생성물을 버리고 비용까지 낸다(규약 5-4). 실제 생성물이 쌓이면 조인다. max_ideal_span_ratio 0.5는 '슬라이더 절반을 넘으면 취향이라 부를 수 없다'는 뜻이고, 프롬프트가 권하는 폭(axis_tolerance 기준)보다 일부러 훨씬 느슨하다. 요리 쪽 셋은 선택의 여지를 지키는 값이다 — 욕구를 다 붙인 요리는 누구에게나 만점이라 무엇을 낼지 고르는 행위가 사라지고, 요구 재료가 많으면 그날 만들 수 있는 요리가 없어져 차선 찾기가 막다른 길이 된다"
+      "assumed": "max_ideal_span_ratio 0.5 · min_preferred_axes 1 · min_preferred_needs 1 · max_preferred_needs 2 · min_text_length 20 · max_dish_need_tags 3 · min_dish_ingredients 2 · max_dish_ingredients 4 · max_line_length 40",
+      "why": "생성물의 합격선인데 근거가 될 생성 데이터가 아직 적다. 이 값들은 재생성을 트리거해 돈을 쓰므로 느슨하게 시작한다 — 잘못된 컷은 멀쩡한 생성물을 버리고 비용까지 낸다(규약 5-4). 실제 생성물이 쌓이면 조인다. max_ideal_span_ratio 0.5는 '슬라이더 절반을 넘으면 취향이라 부를 수 없다'는 뜻이고, 프롬프트가 권하는 폭(axis_tolerance 기준)보다 일부러 훨씬 느슨하다. 요리 쪽 셋은 선택의 여지를 지키는 값이다 — 욕구를 다 붙인 요리는 누구에게나 만점이라 무엇을 낼지 고르는 행위가 사라지고, 요구 재료가 많으면 그날 만들 수 있는 요리가 없어져 차선 찾기가 막다른 길이 된다. max_line_length 40은 손님 한마디가 화면을 덮지 않는 선으로 잡은 것이고, 실제 UI 폭이 정해지면 조정한다"
     },
     {
       "key": "voices",
       "assumed": "gruff / polite / cheerful / weary / haughty 5종",
-      "why": "설계서에 대사 풀이 (상황 × 말투)라고만 되어 있고 목록이 없다. 대사 수는 말투 수 × 상황 수로 곱해지므로 8단계 생성 비용이 여기 직결된다. 5종은 손님이 서로 구별될 만큼은 되면서 조합이 터지지 않는 선으로 잡은 것이고, 실제 상황 수가 나오는 8단계에서 조정한다"
+      "why": "설계서에 대사 풀이 (상황 × 대상 × 말투)라고만 되어 있고 목록이 없다. 대사 수가 말투 수에 곱해지므로 생성 비용이 여기 직결된다. 5종은 손님이 서로 구별될 만큼은 되면서 조합이 터지지 않는 선으로 잡았다. 상황 7종과 곱해 80조합이 나온다"
     },
     {
       "key": "economy.*",
       "assumed": "지갑 8~40 · 요리가 6~30 · 재료가 1~8",
       "why": "만족도의 예산 항이 가격/지갑 비율만 쓰므로 절대 스케일은 계산에 무관하다(3단계 발견). 그래서 고른 기준은 게임 수학이 아니라 플레이어가 읽기 쉬운가다 — 전부 두 자리 이하 정수로 두면 한눈에 비교된다. 요리가는 지갑 중앙값 20 근처에 대부분이 오게 잡았고, 재료 여럿이 요리 하나가 되므로 재료 상한을 요리 하한보다 낮게 뒀다. 실제 마진과 하루 수지는 10단계 시뮬레이션으로 검증한다"
+    },
+    {
+      "key": "situations",
+      "assumed": "greet / order / feedback_high / feedback_low / reaction_high / reaction_low / leave 7종",
+      "why": "설계서에 정보 공개 곡선(욕구 힌트 → 피드백 → 공개)만 있고 상황 목록이 없다. 이 7종은 그 곡선이 성립하는 최소 집합이다 — order가 욕구 힌트를, feedback 둘이 축을 좁히는 역할을 한다. 조합은 말투 5 × 대상(욕구 6 / 축 3 / 없음)으로 80가지가 되고, 상황을 하나 늘릴 때마다 최소 5조합이 붙으므로 늘리기 전에 비용을 본다. 에피소드·조수 대사는 여기 없다 — 설계서가 폴리시 단계로 미뤄뒀다"
     },
     {
       "key": "scoring.*",
