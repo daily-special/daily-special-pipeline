@@ -26,7 +26,7 @@ NHN 게임×AI 해커톤, 채용 연계형. **마감 8/10, 혼자, 18일.** 예�
 ```
 daily-special-pipeline   Python AI 콘텐츠 생성   (우분투) ← 여기
 daily-special-server     Spring Boot 런타임      (우분투, 배포 대상) — 서버 작업 때 생성
-daily-special-client     Unity 도트 2D          (윈도우) — 스파이크 후 생성
+daily-special-client     Unity 도트 2D          (윈도우) — 클라 착수 시 생성
 ```
 
 셋은 **데이터 계약으로만** 만난다 — 파이프라인이 콘텐츠를 데이터(JSON/에셋)로 뱉고, 서버·클라가 소비. 코드 공유 없음.
@@ -127,6 +127,6 @@ daily-special-client     Unity 도트 2D          (윈도우) — 스파이크 �
 
 **작업 순서와 현재 위치는 `docs/roadmap.md`가 소유한다. 여기에 적지 않는다** — 두 곳에 두면 반드시 어긋난다. (실제로 한 번 어긋났다. 이 자리에 "코드 0줄"이 파이프라인이 완성될 때까지 남아 있었다.)
 
-- **병렬(윈도우, 본인)** — Unity APK 스파이크로 go/no-go 확인. 막히면 클라는 웹으로
+- **병렬(윈도우, 본인)** — 클라 착수. 게임 로직 전에 APK를 폰에 올려 확인하고, 막히면 웹으로
 
 18일 일정과 미해결 항목은 design.md 14·15장.
