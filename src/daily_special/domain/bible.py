@@ -251,6 +251,98 @@ class EconomySpec(BaseModel):
     """재료 단가의 범위. 요리 하나에 재료 여럿이 들어가므로 요리가보다 훨씬 낮아야 한다."""
 
 
+class CharRange(BaseModel):
+    """유니코드 코드포인트 구간. 양 끝을 포함한다."""
+
+    model_config = ConfigDict(frozen=True)
+
+    start: int
+    end: int
+    label: str
+    """무엇을 위해 넣었는지. 나중에 지워도 되는지 판단하려면 이유가 남아 있어야 한다."""
+
+
+class TextCharsetSpec(BaseModel):
+    """화면에 뜨는 텍스트가 쓸 수 있는 문자 집합.
+
+    **클라이언트 폰트 아틀라스와 같은 값이어야 한다.** 여기 없는 문자는 폰에서 네모로 뜬다.
+    실제로 한 번 겪었다 — 생성된 대사에 말줄임표(U+2026)가 11번 들어갔는데 아틀라스가
+    `20-7E,AC00-D7A3`이라 지친 말투가 통째로 깨질 뻔했다. 그것도 **폰에 올려야만** 보이는
+    버그였다.
+
+    그래서 이 설정이 유니티 범위 문자열까지 만들어 낸다(`unity_range`). 파이프라인과 클라가
+    같은 값을 각자 적으면 반드시 어긋나고, 어긋난 것을 알아채는 방법이 폰뿐이 된다.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    ranges: list[CharRange]
+
+    def contains(self, char: str) -> bool:
+        return any(item.start <= ord(char) <= item.end for item in self.ranges)
+
+    def violations(self, text: str) -> list[str]:
+        """집합 밖 문자를 처음 나온 순서대로, 중복 없이 돌려준다."""
+        found: list[str] = []
+        for char in text:
+            if not self.contains(char) and char not in found:
+                found.append(char)
+        return found
+
+    def unity_range(self) -> str:
+        """유니티 Font Asset Creator의 `Unicode Range (Hex)`에 그대로 넣는 문자열.
+
+        클라이언트는 이 값을 **계산하지 않고 받아 적는다.**
+        """
+        parts = [
+            f"{item.start:X}" if item.start == item.end else f"{item.start:X}-{item.end:X}"
+            for item in self.ranges
+        ]
+        return ",".join(parts)
+
+    @model_validator(mode="after")
+    def _check_ranges(self) -> "TextCharsetSpec":
+        if not self.ranges:
+            raise ConfigError("text_charset.ranges가 비어 있다. 그러면 어떤 글자도 쓸 수 없다")
+
+        previous_end = -1
+        for item in self.ranges:
+            if item.start > item.end:
+                raise ConfigError(
+                    f"문자 구간 '{item.label}'이 뒤집혔다: U+{item.start:04X} > U+{item.end:04X}"
+                )
+            if item.start < 0 or item.end > 0x10FFFF:
+                raise ConfigError(f"문자 구간 '{item.label}'이 유니코드 범위를 벗어났다")
+            if item.start <= previous_end:
+                # 정렬과 비겹침을 요구하는 이유는 unity_range()의 출력을 결정적으로
+                # 만들기 위해서다. 클라가 받아 적는 값이 실행마다 달라지면 안 된다.
+                raise ConfigError(
+                    f"문자 구간 '{item.label}'이 앞 구간과 겹치거나 정렬되어 있지 않다: "
+                    f"U+{item.start:04X}"
+                )
+            previous_end = item.end
+
+        return self
+
+
+DEFAULT_TEXT_CHARSET = TextCharsetSpec(
+    ranges=[
+        CharRange(start=0x20, end=0x7E, label="ASCII 인쇄 가능 — 영문·숫자·기본 문장부호"),
+        CharRange(start=0xA1, end=0xFF, label="라틴-1 보충 — 가운뎃점(·)·도(°)·곱셈표(×)"),
+        CharRange(start=0x2013, end=0x2014, label="줄표 (en dash, em dash)"),
+        CharRange(start=0x2018, end=0x201D, label="홑·겹따옴표"),
+        CharRange(start=0x2026, end=0x2026, label="말줄임표 … — 지친 말투가 실제로 쓴다"),
+        CharRange(start=0xAC00, end=0xD7A3, label="한글 완성형 11,172자"),
+    ]
+)
+"""기본 문자 집합.
+
+다른 설정값과 달리 **기본값을 준다.** 이것은 밸런스 손잡이가 아니라 클라이언트 폰트
+아틀라스에 묶인 상수라, 설정마다 다시 정할 성질의 것이 아니다. `data/project_bible.json`은
+그럼에도 명시적으로 선언한다 — 설정 파일만 읽고도 무엇이 허용되는지 알아야 한다.
+"""
+
+
 class Unconfirmed(BaseModel):
     """확정되지 않은 게임 수치. 가정값을 쓴다면 그 사실이 여기 남아야 한다.
 
@@ -283,6 +375,7 @@ class ProjectBible(BaseModel):
     scoring: ScoringSpec
     generation: GenerationSpec
     economy: EconomySpec
+    text_charset: TextCharsetSpec = DEFAULT_TEXT_CHARSET
     unconfirmed: list[Unconfirmed] = []
 
     def find_need(self, key: str) -> NeedSpec | None:

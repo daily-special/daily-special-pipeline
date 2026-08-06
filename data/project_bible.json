@@ -1,6 +1,5 @@
 {
   "version": "2026-07-30.3",
-
   "needs": [
     {
       "key": "filling",
@@ -33,7 +32,6 @@
       "description": "평소와 다른 것, 오늘만 먹을 수 있는 것을 원한다"
     }
   ],
-
   "axes": [
     {
       "key": "heat",
@@ -57,7 +55,6 @@
       "slider_max": 100
     }
   ],
-
   "dietary_constraints": [
     {
       "key": "no_meat",
@@ -80,7 +77,6 @@
       "description": "매운 재료나 조리를 쓴 요리를 먹지 않는다"
     }
   ],
-
   "voices": [
     {
       "key": "gruff",
@@ -108,7 +104,6 @@
       "description": "자부심이 있고 평가하듯 말한다. 인정에 인색하지만 인정하면 확실하다"
     }
   ],
-
   "situations": [
     {
       "key": "greet",
@@ -153,14 +148,12 @@
       "subject": "none"
     }
   ],
-
   "scoring": {
     "need_floor": 0.15,
     "axis_tolerance": 25,
     "budget_overrun_ratio": 1.5,
     "dietary_violation_factor": 0.1
   },
-
   "economy": {
     "wallet_min": 8,
     "wallet_max": 40,
@@ -169,7 +162,6 @@
     "ingredient_price_min": 1,
     "ingredient_price_max": 8
   },
-
   "generation": {
     "max_ideal_span_ratio": 0.5,
     "min_preferred_axes": 1,
@@ -181,7 +173,40 @@
     "max_dish_ingredients": 4,
     "max_line_length": 40
   },
-
+  "text_charset": {
+    "ranges": [
+      {
+        "start": 32,
+        "end": 126,
+        "label": "ASCII 인쇄 가능 — 영문·숫자·기본 문장부호"
+      },
+      {
+        "start": 161,
+        "end": 255,
+        "label": "라틴-1 보충 — 가운뎃점(·)·도(°)·곱셈표(×)"
+      },
+      {
+        "start": 8211,
+        "end": 8212,
+        "label": "줄표 (en dash, em dash)"
+      },
+      {
+        "start": 8216,
+        "end": 8221,
+        "label": "홑·겹따옴표"
+      },
+      {
+        "start": 8230,
+        "end": 8230,
+        "label": "말줄임표 … — 지친 말투가 실제로 쓴다"
+      },
+      {
+        "start": 44032,
+        "end": 55203,
+        "label": "한글 완성형 11,172자"
+      }
+    ]
+  },
   "unconfirmed": [
     {
       "key": "axes[].slider_min / slider_max",
