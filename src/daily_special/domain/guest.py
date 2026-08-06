@@ -16,6 +16,7 @@ from collections.abc import Sequence
 from pydantic import BaseModel, ConfigDict
 
 from daily_special.domain.bible import ProjectBible
+from daily_special.domain.charset import check_charset
 from daily_special.domain.issue import Issue, Severity
 from daily_special.domain.satisfaction import GuestPersona, IdealRange
 
@@ -106,7 +107,21 @@ def check_guest(guest: Guest, bible: ProjectBible) -> list[Issue]:
     issues += _check_vocabulary(guest, bible)
     issues += _check_ideal_ranges(guest, bible)
     issues += _check_substance(guest, bible)
+    issues += _check_charset(guest, bible)
 
+    return issues
+
+
+def _check_charset(guest: Guest, bible: ProjectBible) -> list[Issue]:
+    """화면에 뜨는 텍스트가 클라이언트 폰트로 그려지는가."""
+    issues: list[Issue] = []
+    for field, value in (
+        ("name", guest.name),
+        ("title", guest.title),
+        ("bio", guest.bio),
+        ("personality", guest.personality),
+    ):
+        issues += check_charset(value, field, bible)
     return issues
 
 

@@ -19,6 +19,7 @@ from collections.abc import Sequence
 from pydantic import BaseModel, ConfigDict
 
 from daily_special.domain.bible import ProjectBible, SubjectKind
+from daily_special.domain.charset import check_charset
 from daily_special.domain.issue import Issue, Severity
 
 _LINE_ID = re.compile(r"^line_[a-z0-9_]+$")
@@ -65,6 +66,7 @@ def check_line(line: DialogueLine, bible: ProjectBible) -> list[Issue]:
     issues += _check_voice(line, bible)
     issues += _check_situation_and_subject(line, bible)
     issues += _check_text(line, bible)
+    issues += check_charset(line.text, "text", bible)
 
     return issues
 

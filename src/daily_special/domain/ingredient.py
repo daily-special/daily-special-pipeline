@@ -16,6 +16,7 @@ from collections.abc import Sequence
 from pydantic import BaseModel, ConfigDict
 
 from daily_special.domain.bible import IngredientKind, ProjectBible
+from daily_special.domain.charset import check_charset
 from daily_special.domain.issue import Issue, Severity
 
 _INGREDIENT_ID = re.compile(r"^ingredient_[a-z0-9_]+$")
@@ -64,7 +65,16 @@ def check_ingredient(ingredient: Ingredient, bible: ProjectBible) -> list[Issue]
     issues += _check_dietary(ingredient, bible)
     issues += _check_price(ingredient, bible)
     issues += _check_substance(ingredient, bible)
+    issues += _check_charset(ingredient, bible)
 
+    return issues
+
+
+def _check_charset(ingredient: Ingredient, bible: ProjectBible) -> list[Issue]:
+    """화면에 뜨는 텍스트가 클라이언트 폰트로 그려지는가."""
+    issues: list[Issue] = []
+    for field, value in (("name", ingredient.name), ("description", ingredient.description)):
+        issues += check_charset(value, field, bible)
     return issues
 
 
