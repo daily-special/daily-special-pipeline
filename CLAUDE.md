@@ -25,8 +25,8 @@ NHN 게임×AI 해커톤, 채용 연계형. **마감 8/10, 혼자, 18일.** 예�
 
 ```
 daily-special-pipeline   Python AI 콘텐츠 생성   (우분투) ← 여기
-daily-special-server     Spring Boot 런타임      (우분투, 배포 대상) — 서버 작업 때 생성
-daily-special-client     Unity 도트 2D          (윈도우) — 클라 착수 시 생성
+daily-special-server     Spring Boot 런타임      (우분투, 배포 대상)
+daily-special-client     Unity 도트 2D          (윈도우)
 ```
 
 셋은 **데이터 계약으로만** 만난다 — 파이프라인이 콘텐츠를 데이터(JSON/에셋)로 뱉고, 서버·클라가 소비. 코드 공유 없음.

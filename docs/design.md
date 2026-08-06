@@ -382,8 +382,8 @@ NAN 2026 (NHN 게임×AI 해커톤) 출품작의 설계서다. **혼자, 18일**
 
 ```
 daily-special-pipeline    Python AI 콘텐츠 생성   (우분투) ← 이 repo. 여기 docs/도 있음
-daily-special-server      Spring Boot 런타임      (우분투, 배포 대상) — 서버 작업 시작 때 생성
-daily-special-client      Unity 도트 2D          (윈도우) — 클라 착수 시 생성
+daily-special-server      Spring Boot 런타임      (우분투, 배포 대상)
+daily-special-client      Unity 도트 2D          (윈도우)
 ```
 
 - **AI 파이프라인을 별도 repo로 물리 분리한다.** 콘텐츠를 생성해 **데이터로 뱉고**(손님 페르소나·요리·재료·대사) 서버·클라가 소비. 코드 공유 없이 **데이터 계약(스키마)으로만** 만난다. 파이프라인이 대회의 AI 쇼케이스라 「AI 활용 기술 문서」가 여기 붙는다
